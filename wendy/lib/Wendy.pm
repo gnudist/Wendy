@@ -237,12 +237,7 @@ CETi8lj7Oz:
 
 	if( &cacheable_request() )
 	{
-		my $params_str = $ENV{ 'QUERY_STRING' };
-		$CACHEPATH = $HANDLERPATH . md5_hex( $params_str ) . $LANGUAGE;
-		if( &running_in_https() )
-		{
-			$CACHEPATH .= '_S';
-		}
+		$CACHEPATH = &form_cachepath( $HANDLERPATH, $LANGUAGE );
 	}
 
 	if( $CACHEPATH )
