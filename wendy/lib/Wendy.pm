@@ -49,6 +49,96 @@ sub handler
 	my $DATA_TO_SEND = "";
 	my @HEADERS_TO_SEND = ();
 	
+	my %COOKIES = fetch CGI::Cookie;
+	my $LANGUAGE = "";
+
+	my $CCHEADERS = 0;
+
+	my $HANDLERPATH = $ENV{ 'SCRIPT_NAME' } . ( $ENV{ 'PATH_INFO' } or "" ); # just to absorb undef warning
+	$HANDLERPATH = ( &form_address( $HANDLERPATH ) or 'root' );
+
+	if( &cacheable_request() )
+	{
+		# quick check cache hit first
+		if( $COOKIES{ 'lng' } )
+		{
+			$LANGUAGE = $COOKIES{ 'lng' } -> value();
+		}
+
+		unless( $LANGUAGE )
+		{
+			if( $ENV{ 'QUERY_STRING' } =~ /lng=(\w+)/i ) # well thats a bit dirty but faster
+			{
+				$LANGUAGE = $1;
+			}
+		}
+
+		if( $LANGUAGE )
+		{
+
+			$CACHEPATH = &form_cachepath( $HANDLERPATH, $LANGUAGE );
+
+			{
+				$CACHESTORE = File::Spec -> catdir( CONF_VARPATH, 'hosts', $ENV{ "HTTP_HOST" }, 'cache' );
+				$CACHEPATH = File::Spec -> catfile( $CACHESTORE, $CACHEPATH );
+
+				if( -f $CACHEPATH )
+				{
+					$FILE_TO_SEND = $CACHEPATH;
+					$CACHEHIT = 1;
+
+					my $CCFILE = $CACHEPATH . ".custom";
+
+					if( -f $CCFILE )
+					{
+						my $cfh = undef;
+						my %procrv = &read_customcache_file( $CCFILE );
+						$PROCRV = \%procrv;
+						
+						if( $PROCRV -> { "expires" }
+						    and
+						    ( $PROCRV -> { "expires" } < time() ) )
+						{
+							# this cache is expired, do not use it!
+							
+							#if( &getla() < 2.0 )
+							{
+
+								if( unlink( $CACHEPATH ) )
+								{
+									unlink $CACHEPATH . ".custom";
+									unlink $CACHEPATH . ".headers";
+								}
+							
+								$FILE_TO_SEND = undef;
+								$CACHEHIT = 0;
+								goto NOQUICKCACHE;
+							}
+						}
+					}
+
+					$CCFILE = $CACHEPATH . ".headers";
+					
+					if( -f $CCFILE )
+					{
+						my $cfh;
+						my @cheaders = &read_customcache_file( $CCFILE );
+						$PROCRV -> { "headers" } = \@cheaders;
+					}
+
+					goto PROCRV;
+				} else
+				{
+					$LANGUAGE = '';
+					$CACHESTORE = '';
+					$CACHEPATH = '';
+				}
+			}
+		}
+	}
+NOQUICKCACHE:
+
+	my $req = new CGI;
 	&dbconnect();
 
 	if( CONF_MEMCACHED )
@@ -60,13 +150,7 @@ sub handler
 	my %LANGUAGES = &get_host_languages( $HTTP_HOST{ "id" } );
 	my %R_LANGUAGES = reverse %LANGUAGES;
 
-	my $req = new CGI;
 
-	my %COOKIES = fetch CGI::Cookie;
-	my $LANGUAGE = "";
-
-	my $CCHEADERS = 0;
-	
 	if( scalar keys %LANGUAGES > 1 )
 	{
 		$LANGUAGE = $req -> param( 'lng' );
@@ -112,9 +196,7 @@ CETi8lj7Oz:
 		push @HEADERS_TO_SEND, { 'Set-Cookie' => $lngcookie -> as_string() };
 	}
 
-	my $HANDLERPATH = $ENV{ 'SCRIPT_NAME' } . ( $ENV{ 'PATH_INFO' } or "" ); # just to absorb undef warning
 
-	$HANDLERPATH = ( &form_address( $HANDLERPATH ) or 'root' );
 
 	my $CACHEPATH = "";
 	my $CACHESTORE = "";
@@ -153,17 +235,14 @@ CETi8lj7Oz:
 		goto WORKOUTPUT;
 	}
 
-	if( $ENV{ "REQUEST_METHOD" } eq "GET" ) # cache it
+	if( &cacheable_request() )
 	{
-		my @all_params = sort $req -> param( '.parameters' );
-		my $params_str = "";
-
-		foreach my $param ( @all_params )
+		my $params_str = $ENV{ 'QUERY_STRING' };
+		$CACHEPATH = $HANDLERPATH . md5_hex( $params_str ) . $LANGUAGE;
+		if( &running_in_https() )
 		{
-			$params_str .= ':' . $param . ':' . $req -> param( $param );
+			$CACHEPATH .= '_S';
 		}
-
-		$CACHEPATH = $HANDLERPATH . '_' . md5_hex( $params_str ) . '_' . $LANGUAGE;
 	}
 
 	if( $CACHEPATH )
@@ -180,14 +259,8 @@ CETi8lj7Oz:
 
 			if( -f $CCFILE )
 			{
-				my $cfh = undef;
-				my %procrv = ();
 
-				if( open( $cfh, "<", $CCFILE ) )
-				{
-					%procrv = split( /\Q:::\E/, <$cfh> );
-					close $cfh;
-				}
+				my %procrv = &read_customcache_file( $CCFILE );
 
 				$PROCRV = \%procrv;
 
@@ -211,15 +284,7 @@ CETi8lj7Oz:
 
 			if( -f $CCFILE )
 			{
-				my $cfh;
-				my @cheaders = ();
-
-				if( open( $cfh, "<", $CCFILE ) )
-				{
-					@cheaders = split( /\Q:::\E/, <$cfh> );
-					close $cfh;
-				}
-
+				my @cheaders = &read_customcache_file( $CCFILE );
 				$PROCRV -> { "headers" } = \@cheaders;
 
 			}
@@ -477,6 +542,64 @@ sub parse_http_accept_language
 		$outcome{ $lng } = $q;
 	}
 	return %outcome;
+}
+
+sub read_customcache_file
+{
+	my $file = shift;
+
+	my $cfh = undef;
+	my @rv = ();
+
+	if( open( $cfh, "<", $file ) )
+	{
+		while( my $line = <$cfh> )
+		{
+			chomp $line;
+			push @rv, split( /:::/, $line );
+			
+		}
+		close $cfh;
+	}
+
+	return @rv;
+}
+
+sub running_in_https
+{
+	my $rv = 0;
+
+	if( $ENV{ 'HTTP_HTTPS' } or $ENV{ 'HTTPS' } )
+	{
+		$rv = 1;
+	}
+
+	return $rv;
+}
+
+sub cacheable_request
+{
+	my $rv = 0;
+	if( $ENV{ "REQUEST_METHOD" } eq "GET" )
+	{
+		$rv = 1;
+	}
+	return $rv;
+}
+
+sub form_cachepath
+{
+	my ( $prepath, $l ) = @_;
+
+	my $params_str = $ENV{ 'QUERY_STRING' };
+
+	my $rv = $prepath . md5_hex( $params_str ) . $l;
+	
+	if( &running_in_https() )
+	{
+		$rv .= '_S';
+	}
+	return $rv;
 }
 
 1;
