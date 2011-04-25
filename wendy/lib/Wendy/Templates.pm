@@ -17,6 +17,7 @@ use XML::Quote;
 
 our @ISA         = qw( Exporter );
 our @EXPORT      = qw( template_process
+                       template_exists
                        data_process
 		       load_macros
 		       sload_macros
@@ -40,6 +41,20 @@ sub quoter
 	$str =~ s/$__replace_regexp/[ $1 ]/g;
 	$str =~ s/$__functional_regexp/ $1:$2/g;
 	return $str;
+}
+
+sub template_exists
+{
+	my $tname = shift;
+	my $WOBJ = &Wendy::__get_wobj();
+	my $tplfile = File::Spec -> catfile( $WOBJ -> { "TPLSTORE" }, ( $tname or $WOBJ -> { "HPATH" } ) );
+	my $rc = 0;
+
+	if( -f $tplfile )
+	{
+		$rc = 1;
+	}
+	return $rc;
 }
 
 sub template_process
@@ -538,18 +553,7 @@ sub get_replace
 
 sub kill_replace
 {
-
-	foreach my $name ( @_ )
-	{
-		if( exists $REPLACES{ $name } )
-		{
-			delete $REPLACES{ $name };
-		}
-	}
-
-	1;
+	return &unset_macros( @_ );
 }
-
-
 
 1;
