@@ -10,13 +10,6 @@ use Wendy::Config;
 
 use lib File::Spec -> catdir( CONF_MYPATH, 'lib' );
 
-use Apache2::RequestRec;
-use Apache2::RequestIO;
-use Apache2::Connection;
-use Apache2::RequestUtil;
-
-use Apache2::Access;
-
 use Wendy::Memcached;
 use Wendy::Templates;
 use Wendy::Hosts;
@@ -27,7 +20,6 @@ use CGI;
 use CGI::Cookie;
 
 use Digest::MD5 'md5_hex';
-
 
 our %WOBJ = ();
 
@@ -75,7 +67,6 @@ sub handler
 
 		if( $LANGUAGE )
 		{
-
 			$CACHEPATH = &form_cachepath( $HANDLERPATH, $LANGUAGE );
 
 			{
@@ -104,11 +95,9 @@ sub handler
 							#if( &getla() < 2.0 )
 							{
 
-								if( unlink( $CACHEPATH ) )
-								{
-									unlink $CACHEPATH . ".custom";
-									unlink $CACHEPATH . ".headers";
-								}
+								unlink $CACHEPATH;
+								unlink $CACHEPATH . ".custom";
+								unlink $CACHEPATH . ".headers";
 							
 								$FILE_TO_SEND = undef;
 								$CACHEHIT = 0;
@@ -150,7 +139,6 @@ NOQUICKCACHE:
 	my %LANGUAGES = &get_host_languages( $HTTP_HOST{ "id" } );
 	my %R_LANGUAGES = reverse %LANGUAGES;
 
-
 	if( scalar keys %LANGUAGES > 1 )
 	{
 		$LANGUAGE = $req -> param( 'lng' );
@@ -179,7 +167,6 @@ CETi8lj7Oz:
 				}
 			}
 		}
-
 		$CCHEADERS = 1;
 	} # if more than 1 language for host, try to somehow determine most apropriate
 
@@ -195,8 +182,6 @@ CETi8lj7Oz:
 
 		push @HEADERS_TO_SEND, { 'Set-Cookie' => $lngcookie -> as_string() };
 	}
-
-
 
 	my $CACHEPATH = "";
 	my $CACHESTORE = "";
@@ -238,10 +223,6 @@ CETi8lj7Oz:
 	if( &cacheable_request() )
 	{
 		$CACHEPATH = &form_cachepath( $HANDLERPATH, $LANGUAGE );
-	}
-
-	if( $CACHEPATH )
-	{
 		$CACHESTORE = File::Spec -> catdir( CONF_VARPATH, 'hosts', $HTTP_HOST{ "host" }, 'cache' );
 		$CACHEPATH = File::Spec -> catfile( $CACHESTORE, $CACHEPATH );
 
@@ -263,7 +244,7 @@ CETi8lj7Oz:
 				    and
 				    ( $PROCRV -> { "expires" } < time() ) )
 				{
-					# this cache is expired, do not use it!
+					# this cache is expired, do not use it
 
 					unlink $CACHEPATH;
 					unlink $CACHEPATH . ".custom";
@@ -308,63 +289,39 @@ CACHEDONE:
 
 	my $handler_called = 0;
 
-	if( -f $PATHHANDLERSRC )
 	{
-		no strict "refs";
+		my @handlers = ( [ $PATHHANDLERSRC, 'wendy_handler' ],
+				 [ $METAHANDLERSRC, 'meta' ] );
 
-		my $full_handler_name = join( '::', ( &form_address( $HTTP_HOST{ 'host' } ),
-						      $HANDLERPATH,
-						      'wendy_handler' ) );
-
-		if( exists &{ $full_handler_name } )
+HANDLERSLOOP:
+		foreach my $item ( @handlers )
 		{
-			$PROCRV = &{ $full_handler_name }( \%WOBJ );
-			$handler_called = 1;
-		} else
-		{
-			require $PATHHANDLERSRC;
+			my ( $srcfile, $handlername ) = @{ $item };
 
-			if( exists &{ $full_handler_name } )
+			if( -f $srcfile )
 			{
+				no strict "refs";
+
+				my $full_handler_name = join( '::', ( &form_address( $HTTP_HOST{ 'host' } ),
+								      $HANDLERPATH,
+								      $handlername ) );
+
+				unless( exists &{ $full_handler_name } )
+				{
+					require $srcfile;
+				}
+
+				# thats a thin place, in case of error in source file we'll crash
+
 				$PROCRV = &{ $full_handler_name }( \%WOBJ );
 				$handler_called = 1;
-			}
-		}
 
-		if( $handler_called )
-		{
-			unless( ref( $PROCRV ) )
-			{
-				my $t_procrv = { 'data' => $PROCRV };
-				$PROCRV = $t_procrv;
-			}
-		}
-
-	} elsif( -f $METAHANDLERSRC )
-	{
-		no strict "refs";
-
-		my $full_handler_name = join( '::', ( &form_address( $HTTP_HOST{ 'host' } ),
-						      'meta',
-						      'wendy_handler' ) );
-
-		if( exists &{ $full_handler_name } )
-		{
-			$PROCRV = &{ $full_handler_name }( \%WOBJ );
-			$handler_called = 1;
-		} else
-		{
-			require $METAHANDLERSRC;
-			$PROCRV = &{ $full_handler_name }( \%WOBJ );
-			$handler_called = 1;
-		}
-
-		if( $handler_called )
-		{
-			unless( ref( $PROCRV ) )
-			{
-				my $t_procrv = { 'data' => $PROCRV };
-				$PROCRV = $t_procrv;
+				unless( ref( $PROCRV ) )
+				{
+					my $t_procrv = { 'data' => $PROCRV };
+					$PROCRV = $t_procrv;
+				}
+				last HANDLERSLOOP;
 			}
 		}
 	}
@@ -467,7 +424,6 @@ PROCRV:
 WORKOUTPUT:
 	if( ( $CACHEHIT == 0 ) and ( $NOCACHE == 0 ) and $CACHEPATH )
 	{
-		&save_data_in_file_atomic( $DATA_TO_SEND, $CACHEPATH );
 
 		if( $CCHEADERS )
 		{
@@ -482,6 +438,8 @@ WORKOUTPUT:
 			delete $PROCRV -> { "data" };
 			&save_data_in_file_atomic( join( ':::', %$PROCRV ), $CCFILE );
 		}
+
+		&save_data_in_file_atomic( $DATA_TO_SEND, $CACHEPATH );
 	}
 
 	$r -> status( $code );
