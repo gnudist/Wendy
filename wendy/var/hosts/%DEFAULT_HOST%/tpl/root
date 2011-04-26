@@ -1,0 +1,11 @@
+TTL:3
+
+<h1>Hello world!</h1>
+<p>[TEST_MACROS]
+<p>
+PROC:rand_num
+<p>
+
+<table border="0" width="100%"><tr bgcolor="#cccccc"><td>
+TEMPLATEC:test_dc
+</td></tr></table>

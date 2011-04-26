@@ -1,0 +1,46 @@
+<script language="JavaScript">
+
+function submitAliasForm()
+{
+	document.getElementById( "aliasForm" ).submit();
+	return false;
+}
+
+</script>
+
+<font color="red"><b>[ERROR_MESSAGE]</b></font>
+
+<center>
+aliases for <b>[HOSTNAME]:</b>
+<form method="POST" action="/admin/" id="aliasForm">
+<input type="hidden" name="action" value="hosts">
+<input type="hidden" name="sub" value="aliases">
+<input type="hidden" name="host" value="[HOST_ID]">
+<input type="hidden" name="inv" value="true">
+
+<table border="0">
+<tr bgcolor="#cccccc">
+<td>alias</td>
+<td>del?</td>
+</tr>
+[ALIASES_ROWS]
+
+<tr bgcolor="#cccccc">
+<td colspan="2">Add alias:</td>
+</tr>
+<tr bgcolor="#eeeeee">
+<td colspan="2">
+<input type="text" name="newalias" value="">
+</td>
+</tr>
+</table>
+</form>
+
+<table border="0"><tr><td>
+<button onClick="submitAliasForm()"> apply </button>
+</td><td>
+<button onClick="window.close()"> close </button>
+</td></tr>
+</table>
+
+</center>

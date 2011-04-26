@@ -1,0 +1,27 @@
+<p>Use filter to display only needed templates. Leave filter blank to
+display all.
+
+<form method="GET" action="/admin/">
+<input type="hidden" name="action" value="templates">
+<input type="hidden" name="sub" value="listem">
+
+<table border="0">
+<tr>
+<td>
+<SELECT name="host">
+<OPTION value="0"> select host or any </option>
+[HOSTS_OPTIONS]
+</SELECT>
+</td>
+<td><input type="text" name="filter" id="filterEntry" value="[FILTERVAL]"></td>
+<td><input type="submit" name="submit" value=" >> "></td>
+</tr>
+<tr bgcolor="pink"><td>show service templates</td><td><input type="checkbox" name="wservice"></td></tr>
+</table>
+
+
+</form>
+
+<script language="JavaScript">
+document.getElementById( "filterEntry" ).focus();
+</script>

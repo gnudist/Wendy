@@ -1,0 +1,16 @@
+
+<table border="0" width="100%">
+<tr bgcolor="pink">
+<td>Name</td>
+<td>Host</td>
+<td>Type</td>
+<td>Address</td>
+<td>Lng</td>
+<td>Action</td>
+</tr>
+
+[MACROS_ROWS]
+
+</table>
+
+<p>

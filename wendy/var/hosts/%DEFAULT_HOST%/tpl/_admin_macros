@@ -1,0 +1,26 @@
+<html>
+<head>
+<title>Wendy Admin Page - Macros</title>
+</head>
+<body>
+
+<script src="/js/filterselect.js" language="JavaScript" type="text/javascript"></script>
+
+<h2>Admin Page / Macros</h2>
+
+<font color="red"><b>[ERROR_MESSAGE]</b></font>
+<p>
+<a href="/admin/">
+<img src="/img/wendy-small-happy.png" border="0"></a> This is macros section! [ <a href="http://www.wendy-web.org/doc/tpl/" title="Documentation on Wendy site" target="_blank">?</a> ]<br><br>
+
+
+[WORKING_AREA]
+
+
+[ <a href="/admin/">Root</a> ] [ <a
+href="/admin/?action=macros">Macros</a> ]<br>
+
+[ <a href="/admin/?action=macros&sub=new">New macros</a> ]
+
+</body>
+</html>

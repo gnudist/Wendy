@@ -1,0 +1,37 @@
+<p>Enter the name for new host.
+
+<form method="GET" action="/admin/" onSubmit="return checkInputs()">
+<input type="hidden" name="action" value="hosts">
+<input type="hidden" name="sub" value="new">
+
+<table border="0">
+<tr>
+<td><input type="text" size="60" name="name" id="nameEntry" value="[NAMEVAL]"></td>
+<td><input type="submit" name="submit" value=" >> "></td>
+</tr>
+
+<tr bgcolor="pink">
+<td>No DNS lookup for new host</td>
+<td><input type="checkbox" name="nolook" value="CHECKED" id="noLookUp" [NOLOOKUPCHECK]></td>
+</tr>
+
+</table>
+
+
+</form>
+
+<script language="JavaScript">
+document.getElementById( "nameEntry" ).focus();
+
+function checkInputs()
+{
+
+	if( !document.getElementById( "nameEntry" ).value )
+	{
+		alert( "Please, enter new host name." );
+		return false;
+        }	
+	return true;
+}
+
+</script>

@@ -1,0 +1,60 @@
+<div id="jsWarning">
+<font color="red"><b>This page requires JavaScript to function properly.</b></font>
+</div>
+
+<script language="JavaScript">
+document.getElementById( "jsWarning" ).innerHTML = "&nbsp;";
+
+function displayInstallDialog( moduleName )
+{
+	var newInner = "";
+
+	[DISPLAY_INSTALL_DIALOG_BODY]
+
+	
+	document.getElementById( "actionsDivModule" + moduleName ).innerHTML = newInner;
+	return false;
+}
+
+function displayUninstallDialog( moduleName )
+{
+	var newInner = "";
+
+	[DISPLAY_UNINSTALL_DIALOG_BODY]
+
+	document.getElementById( "actionsDivModule" + moduleName ).innerHTML = newInner;
+
+	return false;
+}
+
+function resetModuleActions( moduleName )
+{
+	var newInner = "";
+
+	[RESET_MODULE_ACTIONS_BODY]
+
+	document.getElementById( "actionsDivModule" + moduleName ).innerHTML = newInner;
+	return false;
+}
+
+
+</script>
+
+<table border="0" width="100%">
+<tr bgcolor="pink">
+<td> Module </td>
+<td> Description and author </td>
+<td width="2%"> State </td>
+<td width="9%"> Actions </td>
+</tr>
+
+[MODULES_TDS]
+
+</table>
+
+
+
+<h2>Extern modules administration</h2>
+
+[EXTERN_MODULES_ADMINS]
+

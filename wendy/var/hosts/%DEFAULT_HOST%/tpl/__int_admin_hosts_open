@@ -1,0 +1,72 @@
+<tt>HOST: [OPENEDHOST]</tt>
+<p>
+
+<h3>Default language</h3>
+
+<form method="POST" action="/admin/" onSubmit="return checkInputs()">
+<input type="hidden" name="action" value="hosts">
+<input type="hidden" name="sub" value="update">
+<input type="hidden" name="host" value="[HOSTID]">
+
+<table border="0">
+<tr>
+<td>Default language:</td>
+<td>
+<SELECT name="defaultlng">
+[DEFLNGSELECT]
+</SELECT>
+</td>
+</tr>
+</table>
+
+<h3>Add / remove languages</h3>
+
+<p>Current [OPENEDHOST] languages:
+<table border="0">
+<tr bgcolor="pink">
+<td>Language</td>
+<td>Description</td>
+<td>Delete</td>
+</tr>
+[HOSTSLANGSTRS]
+</table>
+
+
+
+<script language="JavaScript">
+
+function newLanguagesSelected()
+{
+    if( document.getElementById( "addNewLanguageSelect" ).value == 0 )
+    {
+	document.getElementById( "borrowDiv" ).innerHTML = "&nbsp;";
+    } else
+    {
+	document.getElementById( "borrowDiv" ).innerHTML = 'Borrow all macros from:<select name="borrowfrom"><option value="0"> do not borrow </option>[DEFLNGSELECT]</select>';
+    }
+    return false;
+}
+
+</script>
+
+<p>
+
+<table border="0">
+<tr>
+<td valign="top">
+<p>Add a new language:
+<SELECT name="addnewl" onChange="newLanguagesSelected()" id="addNewLanguageSelect">
+<OPTION value="0"> do not add new languages </OPTION>
+[NEWLANGS]
+</SELECT>
+</td>
+<td valign="top">
+<div id="borrowDiv">&nbsp;</div>
+</td></tr></table>
+
+<p>Note: deleting a language means DELETING ALL MACROS with this
+language for host. Host's default language can not be deleted. 
+
+<p><input type="submit" value=" Update ">
+
+</form>
