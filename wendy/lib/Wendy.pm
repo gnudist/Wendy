@@ -45,6 +45,10 @@ sub handler
 	my $LANGUAGE = "";
 
 	my $CCHEADERS = 0;
+	my $CACHEPATH = "";
+	my $CACHESTORE = "";
+	my $CACHEHIT = 0;
+	my $PROCRV = {};
 
 	my $HANDLERPATH = $ENV{ 'SCRIPT_NAME' } . ( $ENV{ 'PATH_INFO' } or "" ); # just to absorb undef warning
 	$HANDLERPATH = ( &form_address( $HANDLERPATH ) or 'root' );
@@ -183,16 +187,11 @@ CETi8lj7Oz:
 		push @HEADERS_TO_SEND, { 'Set-Cookie' => $lngcookie -> as_string() };
 	}
 
-	my $CACHEPATH = "";
-	my $CACHESTORE = "";
-	my $CACHEHIT = 0;
 	my $NOCACHE  = CONF_NOCACHE;
 	my $CUSTOMCACHE = 0;
 
 	my $FILENAME = File::Spec -> canonpath( File::Spec -> catfile( CONF_VARPATH, 'hosts', $HTTP_HOST{ "host" }, 'htdocs', $ENV{ "SCRIPT_NAME" }, $ENV{ 'PATH_INFO' } ) );
 
-	my $PROCRV = {};
-	
 	if( -d $FILENAME )
 	{
 		1;
