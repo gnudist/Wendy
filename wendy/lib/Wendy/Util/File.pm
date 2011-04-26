@@ -5,6 +5,7 @@ use strict;
 package Wendy::Util::File;
 
 use File::Temp;
+use File::Temp ':mktemp';
 
 require Exporter;
 
@@ -20,7 +21,7 @@ sub save_data_in_file_atomic
 {
 	my ( $data, $storefile ) = @_;
 
-	my ( $tfh, $tfn ) = tmpnam();
+	my ( $tfh, $tfn ) = mkstemp( $storefile . 'XXXXX' );
 
 	my ( $error, $success ) = ( 0, 1 );
 
@@ -30,12 +31,16 @@ sub save_data_in_file_atomic
 	}
 	print $tfh $data;
 	close $tfh;
+
+	my $rc = $success;
 	
 	unless( rename( $tfn, $storefile ) )
 	{
-		return $error;
+		$rc = $error;
 	}
-	return $success;
+	unlink $tfn;
+
+	return $rc;
 }
 
 1;
