@@ -1,0 +1,35 @@
+
+<form method="POST" action="/admin/" enctype="multipart/form-data">
+<input type="hidden" name="action" value="cache">
+<input type="hidden" name="sub" value="purge">
+
+<table border="0">
+<tr>
+<td>Select host</td>
+<td>
+<SELECT name="host">
+<option value="0"> all hosts </option>
+[HOSTS_OPTIONS]
+</SELECT>
+</td>
+
+<td>
+Url filter
+</td>
+
+<td>
+<input type="text" name="filter" value="" id="cacheFilterEntry">
+</td>
+
+<td>
+<input type="submit" value=" Clear ">
+</td>
+
+</tr>
+</table>
+
+<script language="JavaScript">
+document.getElementById( "cacheFilterEntry" ).focus();
+</script>
+
+</form>

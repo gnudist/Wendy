@@ -1,0 +1,34 @@
+<html>
+<head>
+<title>Wendy Admin Page - Hosts</title>
+</head>
+<body>
+<h2>Admin Page / Hosts</h2>
+
+<noscript><font color="red">This page requires JavaScript to function correctly.</font></noscript>
+
+<script language="JavaScript">
+
+function openHostAliasesWindow( hId )
+{
+        window.open( '/admin/?action=hosts&sub=aliases&host=' + hId, 'haliases_' + hId, 'width=300,height=300' );
+	return false;
+}
+
+</script>
+
+
+<font color="red"><b>[ERROR_MESSAGE]</b></font>
+<p>
+<a href="/admin/">
+<img src="/static/img/wendy-small-happy.png" border="0"></a> This is hosts section!<br><br>
+
+
+[WORKING_AREA]
+
+<p>
+[ <a href="/admin/">Root</a> ] [ <a href="/admin/?action=hosts">Hosts</a> ]<br>
+[ <a href="/admin/?action=hosts&sub=new">New host</a> ] 
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+<html>
+<head>
+<title>Wendy Admin Page - Cache</title>
+</head>
+<body>
+<h2>Admin Page / Cache</h2>
+
+<font color="red"><b>[ERROR_MESSAGE]</b></font>
+<p>
+<a href="/admin/">
+<img src="/static/img/wendy-small-happy.png" border="0"></a> Cache administration<br><br>
+
+[WORKING_AREA]
+
+<p>
+[ <a href="/admin/">Root</a> ] [ <a href="/admin/?action=cache">Cache</a> ]
+
+</body>
+</html>

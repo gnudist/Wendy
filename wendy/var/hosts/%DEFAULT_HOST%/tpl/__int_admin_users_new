@@ -1,0 +1,75 @@
+<p>Please, fill in new user details.
+
+
+<div id="jsWarningDiv">
+<font color="red"><b>This page requires JavaScript to function
+properly.</b></font>
+</div>
+
+<form method="POST" action="/admin/" onSubmit="return checkInputs()">
+<input type="hidden" name="action" value="users">
+<input type="hidden" name="sub" value="create">
+
+<table border="0">
+
+<tr>
+<td bgcolor="pink">
+Login:
+</td>
+<td><input type="text" id="userLogin" name="login" value="[LOGINVAL]">
+</td>
+</tr>
+
+<tr>
+<td bgcolor="pink">
+Password:
+</td>
+<td><input type="password" id="userPw1" name="password" value="">
+</td>
+</tr>
+
+<tr>
+<td bgcolor="pink">
+Verify password:
+</td>
+<td><input type="password" id="userPw2" name="password2" value="">
+</td>
+</tr>
+
+
+</table>
+<p>
+<input type="submit" value=" Add user ">
+<p>
+
+</form>
+
+<script language="JavaScript">
+document.getElementById( "userLogin" ).focus();
+document.getElementById( "jsWarningDiv" ).innerHTML = "&nbsp;";
+
+function checkInputs()
+{
+	if( !document.getElementById( "userLogin" ).value )
+	{
+		alert( "Please, enter login for new user." );
+		return false;
+	}
+
+	if( !document.getElementById( "userPw1" ).value	)
+	{
+		alert( "Please, enter password for new user." );
+		return false;
+	}
+
+	if( document.getElementById( "userPw1" ).value != document.getElementById( "userPw2" ).value )
+	{
+		alert( "Password verification failed." );
+		return false;
+	}
+
+
+	return true;
+}
+
+</script>

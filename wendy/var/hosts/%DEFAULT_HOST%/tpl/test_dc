@@ -1,0 +1,5 @@
+<h1>And this is test TEMPLATEC template</h1>
+<p>Is is refreshed once in 10 seconds;
+TTL:10
+PROC:rand_num
+<p>

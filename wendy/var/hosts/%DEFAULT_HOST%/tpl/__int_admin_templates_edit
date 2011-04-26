@@ -1,0 +1,17 @@
+Here you can edit template <tt>[TEMPLATE_NAME]</tt> [ <a
+href="/admin/?action=templates&sub=open&name=[TEMPLATE_NAME]&host=[HOST_ID]&mode=fancy">fancy
+edit</a> ]
+
+
+
+<p>
+<form method="POST" ACTION="/admin/">
+<input type="hidden" name="action" value="templates">
+<input type="hidden" name="sub" value="save">
+<input type="hidden" name="host" value="[HOST_ID]">
+<input type="hidden" name="name" value="[TEMPLATE_NAME]">
+<textarea rows="25" cols="80" name="contents" id="templateContents">[TEMPLATE_CONTENTS]</textarea><p>
+<input type="submit" name="submit" value=" Save ">
+</form>
+<p><br>
+			

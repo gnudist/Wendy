@@ -1,0 +1,30 @@
+<html>
+<head>
+<title>Wendy Admin Page - Root</title>
+</head>
+<body>
+<h2>Admin Page</h2>
+
+<font color="red"><b></b></font>
+<p><a href="/admin/">
+<img src="/static/img/wendy-small-happy.png" border="0"></a> Hi! What you want to do:<br><br>
+
+[&nbsp;<a href="/admin/">Root</a>&nbsp;]
+
+ [&nbsp;<a href="/admin/?action=hosts">Hosts</a>&nbsp;]
+ [&nbsp;<a href="/admin/?action=languages">Languages</a>&nbsp;]
+
+ [&nbsp;<a href="/admin/?action=templates">Templates</a>&nbsp;]
+ [&nbsp;<a href="/admin/?action=macros">Macros</a>&nbsp;]
+ [&nbsp;<a href="/admin/?action=procs">Procedures</a>&nbsp;]
+ [&nbsp;<a href="/admin/?action=users">Users</a>&nbsp;]
+ [&nbsp;<a href="/admin/?action=cache">Cache</a>&nbsp;]
+
+ [&nbsp;<a href="/admin/?action=files">File&nbsp;manager</a>&nbsp;]
+ [&nbsp;<a href="/admin/?action=modules">Modules</a>&nbsp;]
+
+<br>
+<div align="right"><i>This is <a target="_blank" title="Wendy Home Page" href="http://www.wendy-web.org/">Wendy Engine</a> v.0.9.2011042601</i></div>
+
+</body>
+</html>

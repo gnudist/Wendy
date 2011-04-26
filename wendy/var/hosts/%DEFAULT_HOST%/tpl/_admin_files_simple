@@ -1,0 +1,19 @@
+<html>
+<head>
+<title>Wendy Admin Page - File Manager</title>
+</head>
+<body>
+<h2>Admin Page / File Manager</h2>
+
+<font color="red"><b>[ERROR_MESSAGE]</b></font>
+<p>
+<a href="/admin/">
+<img src="/static/img/wendy-small-happy.png" border="0"></a>
+
+[WORKING_AREA]
+
+<p>
+[ <a href="/admin/">Root</a> ] [ <a href="/admin/?action=files">File manager</a> ]
+[ <a href="/admin/?action=upload">Upload</a> ]
+</body>
+</html>

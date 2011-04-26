@@ -1,0 +1,88 @@
+<html>
+<head>
+<title>Wendy Admin Page - File Manager - Upload</title>
+</head>
+<body>
+<h2>Admin Page / File Manager / Upload</h2>
+
+<noscript>
+<font color="red"><b>This page requires JavaScipt to function properly.</b></font>
+</noscript>
+
+
+<font color="red"><b>[ERROR_MESSAGE]</b></font>
+<p>
+<a href="/admin/">
+<img src="/static/img/wendy-small-happy.png" border="0"></a>
+<p>
+
+[WORKING_AREA]
+
+<script language="JavaScript">
+
+function checkSubmission()
+{
+
+	if( document.getElementById( "hostSelect" ) )
+	{
+		if( document.getElementById( "hostSelect" ).value > 0 )
+		{
+			return true;
+		}
+		alert( "Please, select host." );
+		return false;
+
+	}
+	alert( "Error: host select not found." );
+	return false;
+}
+
+</script>
+
+
+<form method="POST" action="/admin/" enctype="multipart/form-data" onSubmit="return checkSubmission()">
+<input type="hidden" name="action" value="files">
+<input type="hidden" name="sub" value="upload">
+<input type="hidden" name="location" value="auto">
+
+<table border="0">
+<tr bgcolor="pink">
+<td>Select host:</td>
+<td>
+<SELECT name="host" id="hostSelect">
+<OPTION value="0"> select host </option>
+[HOSTS_OPTIONS]
+</SELECT>
+</td>
+
+<td>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select file:
+</td>
+
+<td>
+<input type="file" id="fileUploadEntry" name="newfile">
+</td>
+
+<td>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;as:
+</td>
+
+<td>
+<input type="text" name="asname" value="">
+</td>
+
+
+<td>
+<input type="submit" name="submit" value=" Upload ">
+</td>
+
+</tr>
+</table>
+
+</form>
+
+<p>
+[ <a href="/admin/">Root</a> ] [ <a href="/admin/?action=files">File manager</a> ]
+[ <a href="/admin/?action=upload">Upload</a> ]
+</body>
+</html>

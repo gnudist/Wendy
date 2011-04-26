@@ -1,0 +1,20 @@
+<html>
+<head>
+<title>Wendy Admin Page - Languages</title>
+</head>
+<body>
+<h2>Admin Page / Languages</h2>
+
+<font color="red"><b>[ERROR_MESSAGE]</b></font>
+<p>
+<a href="/admin/">
+<img src="/static/img/wendy-small-happy.png" border="0"></a> Available languages:<br><br>
+
+
+[WORKING_AREA]
+
+<p>
+[ <a href="/admin/">Root</a> ]
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+<html>
+<head>
+<title>Wendy Admin Page - Procedures</title>
+</head>
+<body>
+<h2>Admin Page / Procedures</h2>
+
+<font color="red"><b>[ERROR_MESSAGE]</b></font>
+<p>
+<a href="/admin/">
+<img src="/static/img/wendy-small-happy.png" border="0"></a> This is procedures section! [ <a href="http://www.wendy-web.org/doc/api/" title="Documentation on Wendy site" target="_blank">?</a> ]<br><br>
+
+
+[WORKING_AREA]
+
+
+[ <a href="/admin/">Root</a> ] [ <a
+href="/admin/?action=procs">Procedures</a> ] <br>
+[ <a href="/admin/?action=procs&sub=new">New procedure</a> ]
+
+</body>
+</html>

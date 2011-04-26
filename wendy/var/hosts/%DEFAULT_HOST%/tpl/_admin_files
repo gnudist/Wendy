@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>Wendy Admin Page - File Manager</title>
+</head>
+<body>
+<h2>Admin Page / File Manager</h2>
+
+<font color="red"><b>[ERROR_MESSAGE]</b></font>
+<p>
+<a href="/admin/">
+<img src="/static/img/wendy-small-happy.png" border="0"></a> Current
+location: <tt>[LOCATION]</tt><br><br>
+
+[WORKING_AREA]
+
+
+<form method="POST" action="/admin/" enctype="multipart/form-data">
+<input type="hidden" name="action" value="files">
+<input type="hidden" name="sub" value="upload">
+<input type="hidden" name="location" value="[INPUTLOC]">
+
+<table border="0" width="100%">
+<tr bgcolor="pink">
+
+<td>Create directory:</td>
+<td><input type="text" name="newdir" value=""></td>
+<td>&nbsp;</td>
+
+<td>Upload file:</td><td><input type="file"
+name="newfile"></td>
+<td>as:</td>
+<td><input type="text" name="asname" value=""></td>
+<td><input type="submit" name="submit" 
+value=" Create / Upload "></td></tr>
+</table>
+
+</form>
+
+<p>
+[ <a href="/admin/">Root</a> ] [ <a href="/admin/?action=files">File manager</a> ]
+[ <a href="/admin/?action=upload">Upload</a> ]
+</body>
+</html>

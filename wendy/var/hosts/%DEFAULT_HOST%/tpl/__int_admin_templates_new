@@ -1,0 +1,42 @@
+<p>Enter the name for new template.
+
+<form method="GET" action="/admin/" onSubmit="return checkInputs()">
+<input type="hidden" name="action" value="templates">
+<input type="hidden" name="sub" value="create">
+
+<table border="0">
+<tr>
+<td>
+<SELECT name="host" id="hostSelect">
+<OPTION value="0"> select host </option>
+[HOSTS_OPTIONS]
+</SELECT>
+</td>
+<td><input type="text" name="name" id="nameEntry" value="[NAMEVAL]"></td>
+<td><input type="submit" name="submit" value=" >> "></td>
+</tr>
+</table>
+
+
+</form>
+
+<script language="JavaScript">
+document.getElementById( "nameEntry" ).focus();
+
+function checkInputs()
+{
+	if( document.getElementById( "hostSelect" ).value == 0 )
+	{
+		alert( "Please, select host." );
+		return false;
+	}
+
+	if( !document.getElementById( "nameEntry" ).value )
+	{
+		alert( "Please, enter new template name." );
+		return false;
+        }	
+	return true;
+}
+
+</script>
