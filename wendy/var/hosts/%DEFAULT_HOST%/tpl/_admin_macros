@@ -11,7 +11,7 @@
 <font color="red"><b>[ERROR_MESSAGE]</b></font>
 <p>
 <a href="/admin/">
-<img src="/img/wendy-small-happy.png" border="0"></a> This is macros section! [ <a href="http://www.wendy-web.org/doc/tpl/" title="Documentation on Wendy site" target="_blank">?</a> ]<br><br>
+<img src="/static/img/wendy-small-happy.png" border="0"></a> This is macros section! [ <a href="http://www.wendy-web.org/doc/tpl/" title="Documentation on Wendy site" target="_blank">?</a> ]<br><br>
 
 
 [WORKING_AREA]

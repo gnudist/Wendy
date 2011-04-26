@@ -13,7 +13,7 @@
 <font color="red"><b>[ERROR_MESSAGE]</b></font>
 <p>
 <a href="/admin/">
-<img src="/img/wendy-small-happy.png" border="0"></a>
+<img src="/static/img/wendy-small-happy.png" border="0"></a>
 <p>
 
 [WORKING_AREA]

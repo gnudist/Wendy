@@ -21,7 +21,7 @@ function openHostAliasesWindow( hId )
 <font color="red"><b>[ERROR_MESSAGE]</b></font>
 <p>
 <a href="/admin/">
-<img src="/img/wendy-small-happy.png" border="0"></a> This is hosts section!<br><br>
+<img src="/static/img/wendy-small-happy.png" border="0"></a> This is hosts section!<br><br>
 
 
 [WORKING_AREA]

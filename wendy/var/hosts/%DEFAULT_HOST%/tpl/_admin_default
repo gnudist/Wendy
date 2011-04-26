@@ -7,7 +7,7 @@
 
 <font color="red"><b></b></font>
 <p><a href="/admin/">
-<img src="/img/wendy-small-happy.png" border="0"></a> Hi! What you want to do:<br><br>
+<img src="/static/img/wendy-small-happy.png" border="0"></a> Hi! What you want to do:<br><br>
 
 [&nbsp;<a href="/admin/">Root</a>&nbsp;]
 
@@ -24,7 +24,7 @@
  [&nbsp;<a href="/admin/?action=modules">Modules</a>&nbsp;]
 
 <br>
-<div align="right"><i>This is <a target="_blank" title="Wendy Home Page" href="http://www.wendy-web.org/">Wendy Engine</a> v.0.9.20071009</i></div>
+<div align="right"><i>This is <a target="_blank" title="Wendy Home Page" href="http://www.wendy-web.org/">Wendy Engine</a> v.0.9.2011042601</i></div>
 
 </body>
 </html>
