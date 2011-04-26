@@ -4,7 +4,6 @@ use strict;
 
 package Wendy::Util::File;
 
-use File::Temp;
 use File::Temp ':mktemp';
 
 require Exporter;
