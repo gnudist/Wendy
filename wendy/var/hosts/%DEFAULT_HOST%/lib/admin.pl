@@ -2650,13 +2650,9 @@ SKIPDIRECTORYLISTING:
 			my $hosts_options = "";
 			my $hs_func_body = "document.getElementById( 'addressDiv' ).innerHTML = '(host not selected)'; ";
 			
-			foreach my $hid ( sort {
-				
-				$hosts -> { $a } -> { "host" }
-				cmp
-				    $hosts -> { $b } -> { "host" }
-				
-			} keys %$hosts )
+			foreach my $hid ( sort { $hosts -> { $a } -> { "host" }
+						 cmp
+						 $hosts -> { $b } -> { "host" } } keys %{ $hosts } )
 			{
 				$hosts_options .= '<OPTION value="' .
 				    $hid .
@@ -2670,9 +2666,23 @@ SKIPDIRECTORYLISTING:
 				{
 					my $host_dir = File::Spec -> catdir( CONF_VARPATH, 'hosts', $hosts -> { $hid } -> { "host" }, 'htdocs'  );
 					
-					my @tree = sort map { &form_address( File::Spec -> abs2rel( $_, $host_dir ) or 'root' ) } grep { ( -d $_ ) and ( -f File::Spec -> catfile( $_, 'wendyaddr' ) ) } &build_directory_tree( $host_dir );
-					push @tree, 'ANY';
+
+					my @tree = ();
+
+					if( my $tree_flat = &datacache_retrieve( 'all_addrs' . $hid ) )
+					{
+						@tree = split( /:::/, $tree_flat );
+					} else
+					{
+
 					
+						@tree = sort map { &form_address( &abs2rel_compat( $_, $host_dir ) or 'root' ) } grep { ( -d $_ ) and ( -f File::Spec -> catfile( $_, 'wendyaddr' ) ) } &shell_build_directory_tree( $host_dir );
+						push @tree, 'ANY';
+						&datacache_store( Id => 'all_addrs' . $hid,
+								  TTL => 600000,
+								  Data => join( ':::', @tree ) );
+					}
+
 					$innerHTML = '<SELECT name="address" id="addressSelect"><OPTION value="0"> ... </OPTION>';
 					
 					foreach my $te ( @tree )
@@ -2682,8 +2692,6 @@ SKIPDIRECTORYLISTING:
 					}
 					
 					$innerHTML .= '</SELECT>';
-					
-					
 				}
 				
 				$hs_func_body .= "if( document.getElementById( 'hostSelect' ).value == " . $hid . ") " .
