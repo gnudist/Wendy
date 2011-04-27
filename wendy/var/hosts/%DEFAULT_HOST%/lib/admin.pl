@@ -1,6 +1,6 @@
 use strict;
 
-package %DEFAULT_HOST_PACKAGE%::admin;
+#package %DEFAULT_HOST_PACKAGE%::admin;
 
 use MIME::Base64;
 
@@ -12,11 +12,13 @@ use Wendy::Util;
 use Wendy::Util::String;
 use Wendy::Templates;
 use Wendy::Modules;
+use Wendy::DataCache;
 use Wendy::Db;
 
 
 use XML::Quote;
 use File::Spec;
+use File::Copy;
 use File::Util 'escape_filename';
 use File::Touch;
 use File::Temp;
@@ -741,12 +743,37 @@ egM3G0VXhj:
 
 		if( $subaction eq 'open' )
 		{
-			$working_area = 'INCLUDE:__int_admin_templates_edit';
+
+			{
+				
+				my @tree = ();
+				
+				if( my $tree_flat = &datacache_retrieve( 'all_addrs' . $host ) )
+				{
+					@tree = split( /:::/, $tree_flat );
+				}
+				my $replace = '';
+				foreach my $item ( @tree )
+				{
+					$replace .= '<option value="' . $item . '">' . $item . '</option>';
+				}
+				&add_replace( DYN_ADDRESSES_OPTIONS => $replace );
+				
+			}
+
+
+			$working_area = 'INCLUDE:__int_admin_templates_edit_codemirror';
 
 			my $editmode = $cgi -> param( 'mode' );
 			if( $editmode eq 'fancy' )
 			{
 				$working_area = 'INCLUDE:__int_admin_templates_edit_fancy';
+			} elsif( $editmode eq 'cm' )
+			{
+				$working_area = 'INCLUDE:__int_admin_templates_edit_codemirror';
+			} elsif( $editmode eq 'normal' )
+			{
+				$working_area = 'INCLUDE:__int_admin_templates_edit';
 			}
 
 			my $tplfile = File::Spec -> catfile( CONF_VARPATH, 'hosts', $hosts -> { $host } -> { "host" }, 'tpl', $name );
@@ -769,6 +796,132 @@ egM3G0VXhj:
 			&add_replace( 'TEMPLATE_NAME'     => xml_quote( $name ),
 				      'HOST_ID'           => $host,
 				      'TEMPLATE_CONTENTS' => $tplcontents );
+
+		} elsif( $subaction eq 'copy_to_another_address' )
+		{
+			my $addr = $cgi -> param( 'copy_to_address' );
+
+			if( $addr )
+			{
+				my $this_template_name = File::Spec -> catfile( CONF_VARPATH, 'hosts', $hosts -> { $host } -> { "host" }, 'tpl', $name );
+				my $new_template_name = File::Spec -> catfile( CONF_VARPATH, 'hosts', $hosts -> { $host } -> { "host" }, 'tpl', escape_filename( $addr ) );
+
+				{
+					my $from_fh = undef;
+					my $to_fh = undef;
+
+					if( open( $from_fh, '<', $this_template_name ) )
+					{
+
+						if( open( $to_fh, '>', $new_template_name ) )
+						{
+							while( my $line = <$from_fh> )
+							{
+								print $to_fh $line;
+							}
+
+							close( $to_fh );
+							chmod 0664, $new_template_name;
+						} else
+						{
+							die $!;
+						}
+
+						close( $from_fh );
+					} else
+					{
+						die $!;
+					}
+				}
+
+
+				{
+					# copy handler
+					my $this_handler_name = File::Spec -> catfile( CONF_VARPATH, 'hosts', $hosts -> { $host } -> { "host" }, 'lib', $name . '.pl' );
+					my $new_handler_name = File::Spec -> catfile( CONF_VARPATH, 'hosts', $hosts -> { $host } -> { "host" }, 'lib', escape_filename( $addr ) . '.pl' );
+
+					if( -f $this_handler_name )
+					{
+
+						if( -f $new_handler_name )
+						{
+
+							copy( $new_handler_name, $new_handler_name . '.bbk.' . time() );
+						}
+
+						my $fh = undef;
+						my $rfh = undef;
+						
+						if( open( $rfh, '<', $this_handler_name ) )
+						{
+							if( open( $fh, '>', $new_handler_name ) )
+							{
+								my $hc = &form_address( $hosts -> { $host } -> { "host" } );
+								my $from = qr/package\s+$hc::$this_handler_name\;/;
+								my $to = sprintf( 'package %s::%s;', $hc, $new_handler_name );
+
+								while( my $line = <$rfh> )
+								{
+
+									$line =~ s/$from/$to/g;
+
+									print $fh $line;
+								}
+								close( $fh );
+								chmod 0664, $new_handler_name;
+								$working_area .= '<p>(handler copied)';
+
+							} else
+							{
+								$working_area .= '<p>could not copy handler: ' . $!;
+							}
+							close $rfh;
+						}
+
+					}
+
+				}
+
+				my %macros = &meta_get_records( Table => 'macros',
+								Where => sprintf( 'host=%d AND address=%s', $host, &dbquote( $name ) ) );
+
+				&wdbconnect();
+
+				my $mac_count = 0;
+
+				foreach my $mid ( keys %macros )
+				{
+					my $already_rec = &meta_get_record( Table => 'macros',
+									    Where => sprintf( 'host=%d AND address=%d AND name=%s AND lng=%d', 
+											      $host, 
+											      &dbquote( $addr ), 
+											      &dbquote( $macros{ $mid } -> { 'name' } ),
+											      $macros{ $mid } -> { 'lng' } ),
+									    Fields => [ 'id' ] );
+
+					my $sql = 'SELECT 1';
+
+					if( $already_rec )
+					{
+						$sql = sprintf( 'UPDATE macros SET body=%s WHERE id=%d', &dbquote( $macros{ $mid } -> { 'body' } ), $already_rec -> { 'id' } );
+					} else
+					{
+						$macros{ $mid } -> { 'address' } = $addr;
+						$sql = sprintf( 'INSERT INTO macros (name,body,host,address,lng) VALUES (%s,%s,%s,%s,%s) ',
+								map { &dbquote( $macros{ $mid } -> { $_ } ) } ( 'name', 'body', 'host', 'address', 'lng' ) );
+					}
+
+					&wdbdo( $sql );
+					$mac_count ++;
+				}
+				$working_area .= sprintf( '<h1>Finished: %s to %s (%d macros copied)</h1>', $name, escape_filename( $addr ), $mac_count );
+
+			} else
+			{
+				$working_area .= '<h1>No valid address specified</h1><p><a href="javascript:history.back()">Back</a><p>';
+			}
+
+
 
 		} elsif( $subaction eq 'save' )
 		{
@@ -1019,6 +1172,7 @@ aSzEzKgwCv:
 					$error = 1;
 				}
 			}
+			&datacache_clear( 'all_addrs' . $host );
 
 			unless( $error )
 			{ # now, create directory hierarchy
@@ -2361,15 +2515,21 @@ SKIPDIRECTORYLISTING:
 			}
 		} elsif( $subaction eq 'open' )
 		{
-			$working_area = 'INCLUDE:__int_admin_macros_edit';
+			$working_area = 'INCLUDE:__int_admin_macros_edit_codemirror';
 			my $id = int( $cgi -> param( "id" ) );
 			my $editmode = $cgi -> param( "mode" );
 
 			if( $editmode eq 'fancy' )
 			{
 				$working_area = 'INCLUDE:__int_admin_macros_edit_fancy';
+			} elsif( $editmode eq 'cm' )
+			{
+				$working_area = 'INCLUDE:__int_admin_macros_edit_codemirror';
+			} elsif( $editmode eq 'normal' )
+			{
+				$working_area = 'INCLUDE:__int_admin_macros_edit';
 			}
-			
+	
 
 			my %record = &meta_get_records( Table  => 'macros',
 							Fields => [ 'id', 'name', 'body', 'istext', 'host', 'address', 'lng' ],
@@ -2413,10 +2573,24 @@ SKIPDIRECTORYLISTING:
 				
 				{
 					my $host_dir = File::Spec -> catdir( CONF_VARPATH, 'hosts', $hosts -> { $hid } -> { "host" }, 'htdocs'  );
+
+
+					my @tree = ();
+
+					if( my $tree_flat = &datacache_retrieve( 'all_addrs' . $hid ) )
+					{
+						@tree = split( /:::/, $tree_flat );
+					} else
+					{
+
 					
-					my @tree = sort map { &form_address( File::Spec -> abs2rel( $_, $host_dir ) or 'root' ) } grep { ( -d $_ ) and ( -f File::Spec -> catfile( $_, 'wendyaddr' ) ) } &build_directory_tree( $host_dir );
-					push @tree, 'ANY';
-					
+						@tree = sort map { &form_address( &abs2rel_compat( $_, $host_dir ) or 'root' ) } grep { ( -d $_ ) and ( -f File::Spec -> catfile( $_, 'wendyaddr' ) ) } &shell_build_directory_tree( $host_dir );
+						push @tree, 'ANY';
+						&datacache_store( Id => 'all_addrs' . $hid,
+								  TTL => 600000,
+								  Data => join( ':::', @tree ) );
+					}
+
 					$innerHTML_addr = '<SELECT name="address" id="addressSelect">';
 					
 					foreach my $te ( @tree )
@@ -2518,9 +2692,7 @@ SKIPDIRECTORYLISTING:
 			}
 			&add_replace( 'HOSTS_OPTIONS' => $hosts_options,
 				      'HS_FUNC_BODY'  => $hs_func_body );
-			
 		}
-		
 		
 		$WOBJ -> { "HPATH" } = "_admin_macros";
 		&add_replace( 'WORKING_AREA' => $working_area );
