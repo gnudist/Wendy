@@ -488,7 +488,6 @@ CcJbhGz7BY:
 
 					foreach my $mid ( keys %macros )
 					{
-						$macros{ $mid } -> { "body" } =~ s/\cM|^\s+|\s+$//gs;
 						my $sql = sprintf( "INSERT INTO macros (name,body,istext,host,address,lng) VALUES(%s,%s,%s,%s,%s,%s)",
 								   map { scalar &dbquote( $_ ) } ( $macros{ $mid } -> { "name" },
 												   $macros{ $mid } -> { "body" },
@@ -2482,7 +2481,6 @@ SKIPDIRECTORYLISTING:
 		{
 			my $id = int( $cgi -> param( "id" ) );
 
-			$cgi -> param( 'macrosbody' ) =~ s/\cM|^\s+|\s+$//gs;
 			my $sql = sprintf( "UPDATE macros SET body=%s, name=%s, host=%s, address=%s, lng=%s WHERE id=%s",
 					   map { &dbquote( $_ ) } ( &despace( scalar $cgi -> param( 'macrosbody' ) ),
 								    uc( $cgi -> param( 'name' ) ),
