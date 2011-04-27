@@ -1,6 +1,6 @@
 use strict;
 
-#package %DEFAULT_HOST_PACKAGE%::admin;
+package %DEFAULT_HOST_PACKAGE%::admin;
 
 use MIME::Base64;
 
@@ -24,6 +24,7 @@ use File::Touch;
 use File::Temp;
 use File::Basename;
 
+use String::ShellQuote;
 use Fcntl ':flock';
 use Digest::MD5 'md5_hex';
 use URI;
@@ -933,7 +934,7 @@ egM3G0VXhj:
 				if( flock( $tfh, LOCK_EX | LOCK_NB ) )
 				{
 					my $nc = $cgi -> param( 'contents' );
-					print $tfh $nc;
+					print $tfh &despace( $nc );
 
 					$working_area = &__htmlokmsg( '<b>OK, ' .
 					                'saved ' .
@@ -2726,6 +2727,36 @@ sub __htmlokmsg
 
 }
 
+
+sub shell_build_directory_tree
+{
+        my $dir = shift;
+
+        my $fname = tmpnam();
+        my @out = ();
+
+        system( sprintf( "/usr/bin/find %s -type d > %s", shell_quote( $dir ), $fname ) );
+        if( -f $fname )
+        {
+                my $fh = undef;
+
+                if( open( $fh, '<', $fname ) )
+                {
+
+                        while( my $line = <$fh> )
+                        {
+				chomp $line;
+                                push @out, $line;
+                        }
+
+                        close( $fh );
+                }
+
+                unlink( $fname );
+        }
+
+        return @out;
+}
 
 1;
 
