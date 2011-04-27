@@ -9,6 +9,7 @@ use Wendy::Procs;
 use Wendy::Hosts;
 use Wendy::Config;
 use Wendy::Util;
+use Wendy::Util::String;
 use Wendy::Templates;
 use Wendy::Modules;
 use Wendy::Db;
@@ -2327,7 +2328,7 @@ SKIPDIRECTORYLISTING:
 			my $id = int( $cgi -> param( "id" ) );
 
 			my $sql = sprintf( "UPDATE macros SET body=%s, name=%s, host=%s, address=%s, lng=%s WHERE id=%s",
-					   map { &dbquote( $_ ) } ( $cgi -> param( 'macrosbody' ),
+					   map { &dbquote( $_ ) } ( &despace( scalar $cgi -> param( 'macrosbody' ) ),
 								    uc( $cgi -> param( 'name' ) ),
 								    $cgi -> param( 'host' ),
 								    $cgi -> param( 'address' ),
