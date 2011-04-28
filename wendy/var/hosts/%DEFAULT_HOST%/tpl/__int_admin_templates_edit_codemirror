@@ -88,10 +88,18 @@ edit</a> ]
 
 <script type="text/javascript">
   var editor = CodeMirror.fromTextArea('elm1', {
-    height: "600px",
-    parserfile: "/static/codemirror/js/parsexml.js",
-    stylesheet: "/static/codemirror/css/xmlcolors.css",
+
+
+
+    parserfile: ["parsexml.js", "parsecss.js", "tokenizejavascript.js", "parsejavascript.js", "parsehtmlmixed.js"],
+    stylesheet: ["/static/codemirror/css/xmlcolors.css", "/static/codemirror/css/jscolors.css", "/static/codemirror/css/csscolors.css"],
     path: "/static/codemirror/js/",
+
+//    parserfile: "parsexml.js",
+//    stylesheet: "css/xmlcolors.css",
+//    path: "js/",
+
+    height: "600px",
     continuousScanning: 500,
     lineNumbers: true
   });

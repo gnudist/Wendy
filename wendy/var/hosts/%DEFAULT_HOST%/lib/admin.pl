@@ -1,6 +1,6 @@
 use strict;
 
-#package %DEFAULT_HOST_PACKAGE%::admin;
+package %DEFAULT_HOST_PACKAGE%::admin;
 
 use MIME::Base64;
 
@@ -24,6 +24,7 @@ use File::Touch;
 use File::Temp;
 use File::Basename;
 
+use String::ShellQuote;
 use Fcntl ':flock';
 use Digest::MD5 'md5_hex';
 use URI;
@@ -933,7 +934,7 @@ egM3G0VXhj:
 				if( flock( $tfh, LOCK_EX | LOCK_NB ) )
 				{
 					my $nc = $cgi -> param( 'contents' );
-					print $tfh $nc;
+					print $tfh &despace( $nc );
 
 					$working_area = &__htmlokmsg( '<b>OK, ' .
 					                'saved ' .
@@ -2649,13 +2650,9 @@ SKIPDIRECTORYLISTING:
 			my $hosts_options = "";
 			my $hs_func_body = "document.getElementById( 'addressDiv' ).innerHTML = '(host not selected)'; ";
 			
-			foreach my $hid ( sort {
-				
-				$hosts -> { $a } -> { "host" }
-				cmp
-				    $hosts -> { $b } -> { "host" }
-				
-			} keys %$hosts )
+			foreach my $hid ( sort { $hosts -> { $a } -> { "host" }
+						 cmp
+						 $hosts -> { $b } -> { "host" } } keys %{ $hosts } )
 			{
 				$hosts_options .= '<OPTION value="' .
 				    $hid .
@@ -2669,9 +2666,23 @@ SKIPDIRECTORYLISTING:
 				{
 					my $host_dir = File::Spec -> catdir( CONF_VARPATH, 'hosts', $hosts -> { $hid } -> { "host" }, 'htdocs'  );
 					
-					my @tree = sort map { &form_address( File::Spec -> abs2rel( $_, $host_dir ) or 'root' ) } grep { ( -d $_ ) and ( -f File::Spec -> catfile( $_, 'wendyaddr' ) ) } &build_directory_tree( $host_dir );
-					push @tree, 'ANY';
+
+					my @tree = ();
+
+					if( my $tree_flat = &datacache_retrieve( 'all_addrs' . $hid ) )
+					{
+						@tree = split( /:::/, $tree_flat );
+					} else
+					{
+
 					
+						@tree = sort map { &form_address( &abs2rel_compat( $_, $host_dir ) or 'root' ) } grep { ( -d $_ ) and ( -f File::Spec -> catfile( $_, 'wendyaddr' ) ) } &shell_build_directory_tree( $host_dir );
+						push @tree, 'ANY';
+						&datacache_store( Id => 'all_addrs' . $hid,
+								  TTL => 600000,
+								  Data => join( ':::', @tree ) );
+					}
+
 					$innerHTML = '<SELECT name="address" id="addressSelect"><OPTION value="0"> ... </OPTION>';
 					
 					foreach my $te ( @tree )
@@ -2681,8 +2692,6 @@ SKIPDIRECTORYLISTING:
 					}
 					
 					$innerHTML .= '</SELECT>';
-					
-					
 				}
 				
 				$hs_func_body .= "if( document.getElementById( 'hostSelect' ).value == " . $hid . ") " .
@@ -2726,6 +2735,36 @@ sub __htmlokmsg
 
 }
 
+
+sub shell_build_directory_tree
+{
+        my $dir = shift;
+
+        my $fname = tmpnam();
+        my @out = ();
+
+        system( sprintf( "/usr/bin/find %s -type d > %s", shell_quote( $dir ), $fname ) );
+        if( -f $fname )
+        {
+                my $fh = undef;
+
+                if( open( $fh, '<', $fname ) )
+                {
+
+                        while( my $line = <$fh> )
+                        {
+				chomp $line;
+                                push @out, $line;
+                        }
+
+                        close( $fh );
+                }
+
+                unlink( $fname );
+        }
+
+        return @out;
+}
 
 1;
 
