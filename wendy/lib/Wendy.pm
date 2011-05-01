@@ -55,81 +55,30 @@ sub handler
 
 	if( &cacheable_request() )
 	{
-		# quick check cache hit first
-		if( $COOKIES{ 'lng' } )
+		if( $ENV{ 'QUERY_STRING' } =~ /lng=(\w+)/i ) # well thats a bit dirty but faster
 		{
-			$LANGUAGE = $COOKIES{ 'lng' } -> value();
+			$LANGUAGE = $1;
 		}
-
+		
 		unless( $LANGUAGE )
 		{
-			if( $ENV{ 'QUERY_STRING' } =~ /lng=(\w+)/i ) # well thats a bit dirty but faster
+			if( $COOKIES{ 'lng' } )
 			{
-				$LANGUAGE = $1;
+				$LANGUAGE = $COOKIES{ 'lng' } -> value();
 			}
 		}
 
 		if( $LANGUAGE )
 		{
-			$CACHEPATH = &form_cachepath( $HANDLERPATH, $LANGUAGE );
-
+			my $t = &request_cache_hit( $LANGUAGE, $ENV{ "HTTP_HOST" }, $HANDLERPATH );
+			if( $t )
 			{
-				$CACHESTORE = File::Spec -> catdir( CONF_VARPATH, 'hosts', $ENV{ "HTTP_HOST" }, 'cache' );
-				$CACHEPATH = File::Spec -> catfile( $CACHESTORE, $CACHEPATH );
-
-				if( -f $CACHEPATH )
-				{
-					$FILE_TO_SEND = $CACHEPATH;
-					$CACHEHIT = 1;
-
-					my $CCFILE = $CACHEPATH . ".custom";
-
-					if( -f $CCFILE )
-					{
-						my $cfh = undef;
-						my %procrv = &read_customcache_file( $CCFILE );
-						$PROCRV = \%procrv;
-						
-						if( $PROCRV -> { "expires" }
-						    and
-						    ( $PROCRV -> { "expires" } < time() ) )
-						{
-							# this cache is expired, do not use it!
-							
-							#if( &getla() < 2.0 )
-							{
-
-								unlink $CACHEPATH;
-								unlink $CACHEPATH . ".custom";
-								unlink $CACHEPATH . ".headers";
-							
-								$FILE_TO_SEND = undef;
-								$CACHEHIT = 0;
-								goto NOQUICKCACHE;
-							}
-						}
-					}
-
-					$CCFILE = $CACHEPATH . ".headers";
-					
-					if( -f $CCFILE )
-					{
-						my $cfh;
-						my @cheaders = &read_customcache_file( $CCFILE );
-						$PROCRV -> { "headers" } = \@cheaders;
-					}
-
-					goto PROCRV;
-				} else
-				{
-					$LANGUAGE = '';
-					$CACHESTORE = '';
-					$CACHEPATH = '';
-				}
+				$CACHEHIT = 1;
+				$PROCRV = $t;
+				goto PROCRV;
 			}
 		}
 	}
-NOQUICKCACHE:
 
 	my $req = new CGI;
 	&dbconnect();
@@ -214,52 +163,19 @@ CETi8lj7Oz:
 
 	if( &cacheable_request() )
 	{
-		$CACHEPATH = &form_cachepath( $HANDLERPATH, $LANGUAGE );
-		$CACHESTORE = File::Spec -> catdir( CONF_VARPATH, 'hosts', $HTTP_HOST{ "host" }, 'cache' );
-		$CACHEPATH = File::Spec -> catfile( $CACHESTORE, $CACHEPATH );
-
-		if( -f $CACHEPATH )
+		my $t = &request_cache_hit( $LANGUAGE, $HTTP_HOST{ "host" }, $HANDLERPATH );
+		if( $t )
 		{
-			$FILE_TO_SEND = $CACHEPATH;
 			$CACHEHIT = 1;
-
-			my $CCFILE = $CACHEPATH . ".custom";
-
-			if( -f $CCFILE )
-			{
-
-				my %procrv = &read_customcache_file( $CCFILE );
-
-				$PROCRV = \%procrv;
-
-				if( $PROCRV -> { "expires" }
-				    and
-				    ( $PROCRV -> { "expires" } < time() ) )
-				{
-					# this cache is expired, do not use it
-
-					unlink $CACHEPATH;
-					unlink $CACHEPATH . ".custom";
-					unlink $CACHEPATH . ".headers";
-
-					$FILE_TO_SEND = undef;
-					$CACHEHIT = 0;
-					goto CACHEDONE;
-				}
-			}
-
-			$CCFILE = $CACHEPATH . ".headers";
-
-			if( -f $CCFILE )
-			{
-				my @cheaders = &read_customcache_file( $CCFILE );
-				$PROCRV -> { "headers" } = \@cheaders;
-
-			}
+			$PROCRV = $t;
 			goto PROCRV;
+		} else
+		{
+			$CACHEPATH = &form_cachepath( $HANDLERPATH, $LANGUAGE );
+			$CACHESTORE = File::Spec -> catdir( CONF_VARPATH, 'hosts', $HTTP_HOST{ "host" }, 'cache' );
+			$CACHEPATH = File::Spec -> catfile( $CACHESTORE, $CACHEPATH );
 		}
 	}
-CACHEDONE:
 
 	my $TPLSTORE = File::Spec -> catdir( CONF_VARPATH, 'hosts', $HTTP_HOST{ "host" }, 'tpl'  );
 	my $HOSTLIBSTORE = File::Spec -> catdir( CONF_VARPATH, 'hosts', $HTTP_HOST{ "host" }, 'lib' );
@@ -319,7 +235,6 @@ HANDLERSLOOP:
 
 	unless( $handler_called )
 	{
-
 		$PROCRV = &template_process();
 	}
 
@@ -394,15 +309,22 @@ PROCRV:
 		}
 	}
 
+	if( exists $PROCRV -> { "ttl" } )
+	{
+		if( $PROCRV -> { "ttl" } )
+		{
+			$PROCRV -> { "expires" } = time() + $PROCRV -> { "ttl" };
+		} else
+		{
+			$PROCRV -> { 'nocache' } = 1;
+		}
+		
+		delete $PROCRV -> { "ttl" };
+	}
+
 	if( $PROCRV -> { "nocache" } )
 	{
 		$NOCACHE = 1;
-	}
-
-	if( defined $PROCRV -> { "ttl" } )
-	{
-		$PROCRV -> { "expires" } = time() + $PROCRV -> { "ttl" };
-		delete $PROCRV -> { "ttl" };
 	}
 
 	if( $PROCRV -> { "expires" } )
@@ -542,6 +464,59 @@ sub form_cachepath
 	{
 		$rv .= '_S';
 	}
+	return $rv;
+}
+
+sub request_cache_hit
+{
+	my ( $lng, $hostname, $hp ) = @_;
+
+	my $rv = undef;
+
+	my $cachepath = &form_cachepath( $hp, $lng );
+		
+	my $cachestore = File::Spec -> catdir( CONF_VARPATH, 'hosts', $hostname, 'cache' );
+	$cachepath = File::Spec -> catfile( $cachestore, $cachepath );
+	
+	if( -f $cachepath )
+	{
+		$rv = {};
+		my $ccfile = $cachepath . ".custom";
+		
+		if( -f $ccfile )
+		{
+			my $cfh = undef;
+			my %procrv = &read_customcache_file( $ccfile );
+			$rv = \%procrv;
+			
+			if( $rv -> { "expires" }
+			    and
+			    ( $rv -> { "expires" } < time() ) )
+			{
+				# this cache is expired, do not use it!
+				#if( &getla() < 2.0 )
+				{
+					unlink $cachepath;
+					unlink $cachepath . ".custom";
+					unlink $cachepath . ".headers";
+					
+					return undef;
+				}
+			}
+		}
+		
+		$ccfile = $cachepath . ".headers";
+		
+		if( -f $ccfile )
+		{
+			my $cfh;
+			my @cheaders = &read_customcache_file( $ccfile );
+			$rv -> { "headers" } = \@cheaders;
+		}
+		$rv -> { 'file' } = $cachepath;
+	}
+
+	
 	return $rv;
 }
 
