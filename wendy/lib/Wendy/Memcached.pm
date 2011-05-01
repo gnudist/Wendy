@@ -28,9 +28,7 @@ my $mc_init = 0;
 
 sub mc_init
 {
-	if( CONF_MEMCACHED
-	    and
-	    ( $mc_init == 0 ) )
+	unless( $mc_init )
 	{
 		$mc_init = 1;
 		$memd = new Cache::Memcached {

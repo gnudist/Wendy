@@ -32,7 +32,7 @@ use constant {
 	CONF_NOCACHE    => 0
 };
 
-our $WENDY_VERSION     = '0.9.20081202';
+our $WENDY_VERSION     = '0.9.2011050101';
 
 our @ISA         = qw( Exporter );
 our @EXPORT      = qw( CONF_DEFHOST
