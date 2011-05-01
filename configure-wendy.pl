@@ -245,6 +245,7 @@ sub patch_files
 
 	my @varfiles = qw( wendy/lib/Wendy/Config.pm
 			   wendy/misc/wendy-httpd.conf
+                           wendy/misc/wendy-fcgi-nginx.conf
 			   wendy/misc/wendyinit.sql
 			   wendy/misc/startup.pl
                            wendy/var/hosts/%DEFAULT_HOST%/lib/admin.pl );

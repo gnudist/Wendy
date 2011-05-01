@@ -1,7 +1,9 @@
 Wendy is a website engine and framework. It is written in Perl.
 
-Works under mod_perl 2.x on Apache, with PostgreSQL as DB server.
+Works under mod_perl 2.x on Apache, or FastCGI, with PostgreSQL as DB
+server.
 
 Home page: http://wendy.org.ru/
 
-Installation insructions should be available at http://wendy.org.ru/doc/install/ .
+Installation insructions should be available at
+http://wendy.org.ru/doc/install/ .
