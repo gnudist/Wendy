@@ -11,6 +11,7 @@ use Wendy::Util::File 'save_data_in_file_atomic';
 use File::Spec;
 use File::Temp;
 use Digest::MD5 'md5_hex';
+use Storable ( 'freeze', 'thaw' );
 
 require Exporter;
 
@@ -49,8 +50,17 @@ sub datacache_store
 							'dc_' . md5_hex( $id ) );
 		
 		my ( $cachedattrsdata, $attrssavepath ) = ( undef, undef );
+		my %cacheattrs = ( 'expires' => ( $ttl ? time() + $ttl : '' ) );
+
+
+		if( my $type = ref( $data ) )
 		{
-			my %cacheattrs = ( 'expires' => ( $ttl ? time() + $ttl : '' ) );
+			$cacheattrs{ 'type' } = $type;
+			$data = freeze( $data );
+		}
+
+
+		{
 			$attrssavepath = $cachestore . '.attrs';
 
 			if( scalar grep { $_ } values %cacheattrs )
@@ -58,7 +68,7 @@ sub datacache_store
 				$cachedattrsdata = join( ':::', %cacheattrs );
 			}
 		}
-		
+
 		
 		if( $cachedattrsdata )
 		{
@@ -99,13 +109,15 @@ sub datacache_retrieve
 		{
 			my $badcache = 0;
 			my $cacheattrs_store = $cachestore . '.attrs';
+			my %attrs = ();
 			if( -f $cacheattrs_store )
 			{
 				my $tfh = undef;
 
 				if( open( $tfh, '<', $cacheattrs_store ) )
 				{
-					my %attrs = split( /\Q:::\E/, <$tfh> );
+					%attrs = split( /\Q:::\E/, <$tfh> );
+
 					if( $attrs{ 'expires' }
 					    and
 					    ( $attrs{ 'expires' } < time() ) )
@@ -125,6 +137,11 @@ sub datacache_retrieve
 					$rv = join( '', <$tfh> );
 					close $tfh;
 				}
+			}
+			if( $attrs{ 'type' } )
+			{
+				my $t = thaw( $rv );
+				$rv = $t;
 			}
 		}
 	}
