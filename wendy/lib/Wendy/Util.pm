@@ -17,7 +17,6 @@ use HTTP::Request::Common;
 use HTTP::Headers;
 use URI;
 use Data::Validate::URI 'is_uri';
-use Digest::MD5 'md5_hex';
 use MIME::Lite;
 use MIME::Base64;
 
@@ -128,15 +127,17 @@ sub meta_get_records
 	     $orderby,
 	     $ordermode,
 	     $memcache,
-	     $mc_timeout ) = @args{ 'Table',
-				    'Fields',
-				    'Where',
-				    'Limit',
-				    'Offset',
-				    'OrderField',
-				    'OrderMode',
-				    'Memcache',
-				    'MemcacheTime' };
+	     $mc_timeout,
+	     $debug ) = @args{ 'Table',
+			       'Fields',
+			       'Where',
+			       'Limit',
+			       'Offset',
+			       'OrderField',
+			       'OrderMode',
+			       'Memcache',
+			       'MemcacheTime',
+			       'Debug' };
 
 	my $fieldspart = "";
 
@@ -156,11 +157,16 @@ sub meta_get_records
 		  ( $limit ? " ORDER BY " . ( $orderby ? $orderby : 'id' ) . ' ' . ( $ordermode ? $ordermode : 'DESC' ) . " LIMIT " . int( $limit ) : '' ) .
 		  ( $offset ? " OFFSET " . int( $offset ) : '' );
 
+	if( $debug )
+	{
+		return $sql;
+	}
+
 	my $qid = "";
 
 	if( $memcache )
 	{
-		$qid = md5_hex( $sql );
+		$qid = $sql;
 		my $cached = &mc_get( $qid );
 
 		if( defined $cached )
@@ -205,14 +211,16 @@ sub meta_get_record
 	     $orderby,
 	     $ordermode,
 	     $memcache,
-	     $mc_timeout ) = @args{ 'Table',
-				    'Fields',
-				    'Where',
-				    'Limit',
-				    'OrderField',
-				    'OrderMode',
-				    'Memcache',
-				    'MemcacheTime' };
+	     $mc_timeout,
+	     $debug ) = @args{ 'Table',
+			       'Fields',
+			       'Where',
+			       'Limit',
+			       'OrderField',
+			       'OrderMode',
+			       'Memcache',
+			       'MemcacheTime',
+			       'Debug' };
 
 	my $fieldspart = "";
 
@@ -231,11 +239,16 @@ sub meta_get_record
 		  ( $where ? " WHERE " . $where : '' ) .
 		  ( $limit ? " ORDER BY " . ( $orderby ? $orderby : 'id' ) . ' ' . ( $ordermode ? $ordermode : 'DESC' ) . " LIMIT " . int( $limit ) : '' );
 
+	if( $debug )
+	{
+		return $sql;
+	}
+
 	my $qid = "";
 
 	if( $memcache )
 	{
-		$qid = md5_hex( $sql );
+		$qid = $sql;
 		my $cached = &mc_get( $qid );
 		
 		if( defined $cached )

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 use strict;
 use lib "wendy/lib";
@@ -8,6 +8,7 @@ use File::Touch;
 use File::Spec;
 use File::Temp;
 use Wendy::Util 'perl_module_available';
+use Wendy::Util::File 'save_data_in_file_atomic';
 use Wendy::Hosts 'form_address';
 use Cwd;
 
@@ -51,26 +52,23 @@ foreach my $name ( @reqlist )
 {
 	print "Checking requirement " . $name . "...";
 
-	if( &perl_module_available( $name ) )
+	my $res = "ok";
+
+	unless( &perl_module_available( $name ) )
 	{
-		print "ok";
-	} else
-	{
-		print "fail";
+		$res = "fail";
 		push @notfounds, $name;
 	}
-	print "\n";
+	print $res, "\n";
 }
 
 
 if( scalar @notfounds )
 {
-	print "Following modules are required by Wendy, but not found on this system:\n\n";
-	print join( "\n", @notfounds );
-
-	print "\n\nCan not continue.";
+	print "Following modules are required by Wendy, but not found on this system:\n\n",
+	      join( "\n", @notfounds ),
+	      "\n\nCan not continue.";
 	exit( 0 );
-
 }
 
 print <<EOF;
@@ -94,8 +92,6 @@ my $term = new Term::ReadLine '';
 my $prompt = "Press enter to continue...";
 $term -> readline( $prompt );
 
-
-
 my $wendysdir = 'wendy';
 my $configflag = '.configured';
 $configflag = File::Spec -> catfile( $wendysdir, $configflag );
@@ -112,8 +108,6 @@ Wendy correctly. See README.txt file.
 EOF
 
                 exit( 1 );
-
-
 	}
 
 	if( -f $configflag )
@@ -124,34 +118,9 @@ Already configured. To re-configure Wendy, completely remove $wendysdir director
 and re-extract distribution archive.
 
 EOF
-
                 exit( 2 );
 	}
-
-
-	1;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 my @questions = (
 		 {
@@ -215,7 +184,7 @@ KSxcfevU:
 foreach my $question ( @questions )
 {
 
-	print "\n\n" . "Question " . $qno . " of " . $qcnt . "\n\n";
+	print "\n\n", "Question ", $qno, " of ", $qcnt, "\n\n";
 
 	my $temp_var = $term -> readline( $question -> { 'desc' } . ( $question -> { 'default' } ? ( '[' . $question -> { 'default' } . ']' ) : '' ) );
 
@@ -235,17 +204,16 @@ foreach my $question ( @questions )
 		}
 	}
 
-
 	$data{ $question -> { 'key' } } = $temp_var;
-} continue { $qno ++ }
+	$qno ++;
+}
 
-
-print "\n\n"  .
-      'Okay.' .
-      "\n"    .
-      'I am ready to apply your settings now.' .
-      "\n"    .
-      'Type "ok" to continue, anything other - quit.' .
+print "\n\n",
+      'Okay.',
+      "\n",
+      'I am ready to apply your settings now.',
+      "\n",
+      'Type "ok" to continue, anything other - quit.',
       "\n\n";
 
 if( $term -> readline( '>' ) eq 'ok' )
@@ -275,13 +243,11 @@ sub patch_files
 {
 	my %args = @_;
 
-	my @varfiles = qw(
-			  wendy/lib/Wendy/Config.pm
-			  wendy/misc/wendy-httpd.conf
-			  wendy/misc/wendyinit.sql
-			  wendy/misc/startup.pl
-                          wendy/var/hosts/%DEFAULT_HOST%/lib/admin.pl
-			  );
+	my @varfiles = qw( wendy/lib/Wendy/Config.pm
+			   wendy/misc/wendy-httpd.conf
+			   wendy/misc/wendyinit.sql
+			   wendy/misc/startup.pl
+                           wendy/var/hosts/%DEFAULT_HOST%/lib/admin.pl );
 
 	foreach my $file ( @varfiles )
 	{
@@ -319,31 +285,32 @@ sub patch_file
 	my $tfh = undef;
 
 
-	open( $tfh, '<', $file ) or die 'cant open file ' . $file . $!;
-	
-	my ( $fh, $fn ) = tmpnam();
-
-	while( my $line = <$tfh> )
+	if( open( $tfh, '<', $file ) )
 	{
-		foreach my $from ( keys %args )
+		my $patched_data = '';
+
+		while( my $line = <$tfh> )
 		{
-			my $to = $args{ $from };
-			$line =~ s/\Q$from\E/$to/g;
+			foreach my $from ( keys %args )
+			{
+				my $to = $args{ $from };
+				$line =~ s/\Q$from\E/$to/g;
+			}
+			
+			$patched_data .= $line;
+		}
+		
+		close( $tfh );
+		unless( &save_data_in_file_atomic( $patched_data, $file ) )
+		{
+			print "file ", $file, " patching error ", $!;
+			die;
 		}
 
-		print $fh $line;
+	} else
+	{
+		print "could not read file ", $file, ": ", $!;
+		die;
 	}
-	close $fh;
-	close $tfh;
-
-
-	open( $tfh, '<', $fn ) or die 'cant read back patched file: ' . $!;
-	open( $fh, '>', $file ) or die 'cant write patched file: ' . $!;
-
-	print $fh join( '', <$tfh> );
-	close $fh;
-	close $tfh;
-	unlink $fn;
-
 	return 0;
 }

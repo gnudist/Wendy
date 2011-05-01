@@ -36,7 +36,16 @@ body text,
 istext boolean default true,
 host INT REFERENCES host(id),
 address varchar(256),
-lng  INT REFERENCES language(id) );
+lng INT REFERENCES language(id),
+created timestamp default NOW(),
+accessed timestamp,
+active boolean NOT NULL default true,
+ac int not null default 0 );
+
+CREATE INDEX address_idx ON macros(address);
+CREATE INDEX host_idx ON macros(host);
+CREATE INDEX lng_idx ON macros(lng);
+CREATE INDEX active_idx ON macros(active);
 
 ALTER TABLE macros ADD CONSTRAINT m_uni UNIQUE(name,host,address,lng);
 ALTER TABLE macros ADD CONSTRAINT m_chk CHECK(name ~ '^[A-Z_0-9-]+$');
@@ -69,6 +78,7 @@ INSERT INTO language (lng,descr) VALUES ('ja', 'Japanese');
 INSERT INTO language (lng,descr) VALUES ('cn', 'Chinese');
 INSERT INTO language (lng,descr) VALUES ('et', 'Estonian');
 INSERT INTO language (lng,descr) VALUES ('ua', 'Ukrainian');
+INSERT INTO language (lng,descr) VALUES ('es', 'Spanish');
 
 INSERT INTO host (host) VALUES('%DEFAULT_HOST%');
 

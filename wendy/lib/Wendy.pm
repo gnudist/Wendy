@@ -207,16 +207,9 @@ CETi8lj7Oz:
 		goto WORKOUTPUT;
 	} else
 	{
-		$code = 302;
+		$code = 404;
 		$msg = "404 not found";
-		$ctype = 'text/plain';
-		$charset = undef;
-		$DATA_TO_SEND = $msg;
-		push @HEADERS_TO_SEND, { Location => '/404/' };
-
-		$NOCACHE = 1;
-
-		goto WORKOUTPUT;
+		$HANDLERPATH = '404';
 	}
 
 	if( &cacheable_request() )
@@ -289,14 +282,13 @@ CACHEDONE:
 	my $handler_called = 0;
 
 	{
-		my @handlers = ( [ $PATHHANDLERSRC, 'wendy_handler' ],
-				 [ $METAHANDLERSRC, 'meta' ] );
+		my @handlers = ( $PATHHANDLERSRC,
+				 $METAHANDLERSRC );
+		my $handlername = 'wendy_handler';
 
 HANDLERSLOOP:
-		foreach my $item ( @handlers )
+		foreach my $srcfile ( @handlers )
 		{
-			my ( $srcfile, $handlername ) = @{ $item };
-
 			if( -f $srcfile )
 			{
 				no strict "refs";
@@ -327,8 +319,7 @@ HANDLERSLOOP:
 
 	unless( $handler_called )
 	{
-		&sload_macros( 'ANY' );
-		&sload_macros();
+
 		$PROCRV = &template_process();
 	}
 
