@@ -44,6 +44,7 @@ URI
 XML::Quote
 MIME::Lite
 DateTime
+String::ShellQuote
 		 );
 
 my @notfounds = ();
