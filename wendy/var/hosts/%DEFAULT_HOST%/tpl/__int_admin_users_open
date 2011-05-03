@@ -1,10 +1,10 @@
 <p>You can edit user [LOGINVAL] here.
 
 
-<div id="jsWarningDiv">
+<noscript>
 <font color="red"><b>This page requires JavaScript to function
 properly.</b></font>
-</div>
+</noscript>
 
 <form method="POST" action="/admin/" onSubmit="return checkInputs()">
 <input type="hidden" name="action" value="users">
@@ -47,7 +47,6 @@ Verify password:
 
 <script language="JavaScript">
 document.getElementById( "userLogin" ).focus();
-document.getElementById( "jsWarningDiv" ).innerHTML = "&nbsp;";
 
 function checkInputs()
 {

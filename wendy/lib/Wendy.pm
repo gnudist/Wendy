@@ -69,8 +69,7 @@ sub handler
 
 		if( $LANGUAGE )
 		{
-			my $t = &request_cache_hit( $LANGUAGE, $ENV{ "HTTP_HOST" }, $HANDLERPATH );
-			if( $t )
+			if( my $t = &request_cache_hit( $LANGUAGE, $ENV{ "HTTP_HOST" }, $HANDLERPATH ) )
 			{
 				$CACHEHIT = 1;
 				$PROCRV = $t;
@@ -162,8 +161,7 @@ CETi8lj7Oz:
 
 	if( &cacheable_request() )
 	{
-		my $t = &request_cache_hit( $LANGUAGE, $HTTP_HOST{ "host" }, $HANDLERPATH );
-		if( $t )
+		if( my $t = &request_cache_hit( $LANGUAGE, $HTTP_HOST{ "host" }, $HANDLERPATH ) )
 		{
 			$CACHEHIT = 1;
 			$PROCRV = $t;
