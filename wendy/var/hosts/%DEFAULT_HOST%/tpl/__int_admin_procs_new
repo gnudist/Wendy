@@ -1,5 +1,4 @@
 
-
 <form method="POST" action="/admin/">
 <input type="hidden" name="action" value="procs">
 <input type="hidden" name="sub" value="addnew">

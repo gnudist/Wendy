@@ -210,12 +210,15 @@ sub wdbquote
 
 sub dbdisconnect
 {
-	$rdbh -> disconnect();
-	$rdbh = undef;
-
-	if( $one_dbh )
+	if( $rdbh )
 	{
-		$wdbh = undef;
+		$rdbh -> disconnect();
+		$rdbh = undef;
+
+		if( $one_dbh )
+		{
+			$wdbh = undef;
+		}
 	}
 }
 

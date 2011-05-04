@@ -4,7 +4,7 @@
 </head>
 <body>
 
-<script src="/js/filterselect.js" language="JavaScript" type="text/javascript"></script>
+<script src="/static/js/filterselect.js" language="JavaScript" type="text/javascript"></script>
 
 <h2>Admin Page / Macros</h2>
 

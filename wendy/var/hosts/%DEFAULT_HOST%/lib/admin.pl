@@ -44,7 +44,7 @@ sub wendy_handler
 	if( $auth )
 	{
 		my ( $username,
-		     $password ) = split( /\Q:\E/, decode_base64( substr( $auth, 6 ) ) );
+		     $password ) = split( /:/, decode_base64( substr( $auth, 6 ) ) );
 
 		$AUTHENTICATED_USER = &get_user( Login    => ( $username or '--------------------------------' ),
 						 Password => ( $password or '--------------------------------' ) );
@@ -1152,7 +1152,7 @@ aSzEzKgwCv:
 		{
 			my $namep = $cgi -> param( 'namep' );
 
-			my @nameparts = grep { escape_filename( $_ ) } map { $_ =~ s/\s//g ; $_ }  split( /\Q\/\E/, $namep );
+			my @nameparts = grep { escape_filename( $_ ) } map { $_ =~ s/\s//g ; $_ }  split( /\//, $namep );
 			my $tplpath = escape_filename( &form_address( join( '/', @nameparts ) ) );
 
 			my $tplfile;
@@ -1970,7 +1970,7 @@ r54dhYfkP6:
 						    "'; }";
 						
 						
-						$reset_inner =~ s/\Q\'\E/&quot;/g;
+						$reset_inner =~ s/\'/&quot;/g;
 						$reset_inner_body .= "if( moduleName == '" .
 						    $qmn .
 						    "' ) { newInner='" .

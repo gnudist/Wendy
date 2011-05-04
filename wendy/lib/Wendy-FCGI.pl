@@ -1,12 +1,24 @@
 #!/usr/bin/perl
 
-package Wendy;
+# Using Wendy with FastCGI. EXPERIMENTAL
 
 use strict;
+use FCGI;
+
+my $request = FCGI::Request();
+
+while( $request -> Accept() >= 0 )
+{
+	print &Wendy::handler( $request );
+}
+exit( 0 );
+
+################################################################################
+
+package Wendy;
 
 use File::Spec;
 use Wendy::Config;
-
 use lib File::Spec -> catdir( CONF_MYPATH, 'lib' );
 
 use Wendy::Memcached;
@@ -49,8 +61,7 @@ sub handler
 	my $CACHEHIT = 0;
 	my $PROCRV = {};
 
-	my $HANDLERPATH = $ENV{ 'SCRIPT_NAME' } . ( $ENV{ 'PATH_INFO' } or "" ); # just to absorb undef warning
-	$HANDLERPATH = ( &form_address( $HANDLERPATH ) or 'root' );
+	my $HANDLERPATH = ( &form_address( $ENV{ 'REQUEST_URI' } ) or 'root' );
 
 	if( &cacheable_request() )
 	{
@@ -69,7 +80,8 @@ sub handler
 
 		if( $LANGUAGE )
 		{
-			if( my $t = &request_cache_hit( $LANGUAGE, $ENV{ "HTTP_HOST" }, $HANDLERPATH ) )
+			my $t = &request_cache_hit( $LANGUAGE, $ENV{ "HTTP_HOST" }, $HANDLERPATH );
+			if( $t )
 			{
 				$CACHEHIT = 1;
 				$PROCRV = $t;
@@ -137,7 +149,7 @@ CETi8lj7Oz:
 	my $NOCACHE  = CONF_NOCACHE;
 	my $CUSTOMCACHE = 0;
 
-	my $FILENAME = File::Spec -> canonpath( File::Spec -> catfile( CONF_VARPATH, 'hosts', $HTTP_HOST{ "host" }, 'htdocs', $ENV{ "SCRIPT_NAME" }, $ENV{ 'PATH_INFO' } ) );
+	my $FILENAME = File::Spec -> canonpath( File::Spec -> catfile( CONF_VARPATH, 'hosts', $HTTP_HOST{ "host" }, 'htdocs', $ENV{ "REQUEST_URI" } ) );
 
 	if( -d $FILENAME )
 	{
@@ -161,7 +173,8 @@ CETi8lj7Oz:
 
 	if( &cacheable_request() )
 	{
-		if( my $t = &request_cache_hit( $LANGUAGE, $HTTP_HOST{ "host" }, $HANDLERPATH ) )
+		my $t = &request_cache_hit( $LANGUAGE, $HTTP_HOST{ "host" }, $HANDLERPATH );
+		if( $t )
 		{
 			$CACHEHIT = 1;
 			$PROCRV = $t;
@@ -235,12 +248,9 @@ HANDLERSLOOP:
 		$PROCRV = &template_process();
 	}
 
-PROCRV:
-	if( $PROCRV -> { "rawmode" } )
-	{
-		goto WORKFINISHED;
-	}
+	my $app_output = '';
 
+PROCRV:
 	if( $PROCRV -> { "ctype" } )
 	{
 		$CUSTOMCACHE = 1;
@@ -351,12 +361,17 @@ WORKOUTPUT:
 		&save_data_in_file_atomic( $DATA_TO_SEND, $CACHEPATH );
 	}
 
-	$r -> status( $code );
-	$r -> status_line( join( ' ', ( $code, $msg ) ) );
+	# $r -> status( $code );
+	# $r -> status_line( join( ' ', ( $code, $msg ) ) );
+
+
+
+	$app_output .= "Status: " . join( ' ', ( $code, $msg ) ) . "\n";
 
 	if( $ctype )
 	{
-		$r -> content_type( $ctype . ( $charset ? '; charset=' . $charset : '' ) );
+		#$r -> content_type( $ctype . ( $charset ? '; charset=' . $charset : '' ) );
+		$app_output .= "Content-Type: ". $ctype . ( $charset ? '; charset=' . $charset : '' ) . "\n";
 	}
 
 	if( scalar @HEADERS_TO_SEND )
@@ -364,22 +379,40 @@ WORKOUTPUT:
 		foreach my $header ( @HEADERS_TO_SEND )
 		{
 			my ( $key, $value ) = %$header;
-			$r -> headers_out -> { $key } = $value;
+			#$r -> headers_out -> { $key } = $value;
+			$app_output .= $key . ": " . $value;
 		}
 	}
-
-	unless( $r -> header_only() )
-	{
+	$app_output .= "\n";
+	# unless( $r -> header_only() )
+	# {
 		if( $FILE_TO_SEND )
 		{
-			$r -> sendfile( $FILE_TO_SEND, $FILE_OFFSET, $FILE_LENGTH );
+		 	#$r -> sendfile( $FILE_TO_SEND, $FILE_OFFSET, $FILE_LENGTH );
+			my $fh = undef;
+			if( open( $fh, '<', $FILE_TO_SEND ) )
+			{
+				if( $FILE_OFFSET )
+				{
+					seek( $fh, $FILE_OFFSET, 0 );
+				}
+				my $buf = '';
+				while( read( $fh, $buf, 4096 ) )
+				{
+					$app_output .= $buf;
+				}
+				close $fh;
+			} else
+			{
+				die 'could not open ' . $FILE_TO_SEND . ': ' . $!;
+			}
 		}
 		
 		if( $DATA_TO_SEND )
 		{
-			$r -> print( $DATA_TO_SEND );
+			$app_output .= $DATA_TO_SEND;
 		}
-	}
+	# }
 
 WORKFINISHED:
 	&dbdisconnect();
@@ -387,7 +420,7 @@ WORKFINISHED:
 
 	%WOBJ = ();
 
-	return;
+	return $app_output;
 }
 
 sub parse_http_accept_language
@@ -512,7 +545,6 @@ sub request_cache_hit
 		}
 		$rv -> { 'file' } = $cachepath;
 	}
-
 	
 	return $rv;
 }

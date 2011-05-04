@@ -2,13 +2,11 @@
 <input type="hidden" name="action" value="macros">
 <input type="hidden" name="sub" value="list">
 
-<div id="jsWarning">
+<noscript>
 <font color="red"><b>This page requires JavaScript to function properly.</b></font>
-</div>
+</noscript>
 
 <script language="JavaScript">
-document.getElementById( "jsWarning" ).innerHTML = "&nbsp;";
-
 
 function hostSelected()
 {
