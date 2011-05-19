@@ -143,7 +143,7 @@ sub meta_get_records
 
 	if( defined $fields )
 	{
-		$fieldspart = join( ", ", @$fields );
+		$fieldspart = ( ref $fields ? join( ", ", @$fields ) : $fields );
 	} else
 	{
 		$fieldspart = '*';
@@ -226,7 +226,7 @@ sub meta_get_record
 
 	if( defined $fields )
 	{
-		$fieldspart = join( ", ", @$fields );
+		$fieldspart = ( ref $fields ? join( ", ", @$fields ) : $fields );
 	} else
 	{
 		$fieldspart = '*';
