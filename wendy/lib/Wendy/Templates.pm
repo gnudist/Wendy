@@ -26,7 +26,7 @@ our @EXPORT      = qw( template_process
 		       add_replace
 		       get_replace
 		       kill_replace
-		       quoteri
+		       quoter
 		       load_custom_macros
 		       lcm );
 our @EXPORT_OK   = @EXPORT;
