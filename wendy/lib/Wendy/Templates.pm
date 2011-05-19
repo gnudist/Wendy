@@ -563,7 +563,11 @@ sub kill_replace
 sub load_custom_macros
 {
         my %args = @_;
-        my $query = '';
+        my ( $query, $wobj ) = ( '', \%Wendy::WOBJ );
+
+	( $args{ 'host' },
+	  $args{ 'lng' } ) = ( ( $args{ 'host' } || $wobj -> { 'HOST' } -> { 'id' } ),
+			       ( $args{ 'lng' }  || $wobj -> { 'LNG' } ) );
 
 	{
 		my $uri = URI -> new();
@@ -584,14 +588,12 @@ sub load_custom_macros
                 return $QUERY_CACHE{ $query };
         }
 
-	my $wobj = \%Wendy::WOBJ;
-
         my %macroses = &meta_get_records( Table => 'macros m, language l',
                                           Fields => [ 'm.body as body', 'm.name as id' ],
                                           Where => sprintf( 'm.host=%d and m.name=%s and m.lng=l.id and l.lng=%s and m.address=%s',
-                                                            ( $args{ 'host' } || $wobj -> { 'HOST' } -> { 'id' } ),
+                                                            $args{ 'host' },
                                                             &dbquote( $args{ 'name' } ),
-                                                            &dbquote( ( $args{ 'lng' } || $wobj -> { 'LNG' } ) ),
+                                                            &dbquote( $args{ 'lng' } ),
                                                             &dbquote( $args{ 'addr' } ) ) );
 	if( scalar keys %macroses )
 	{
