@@ -6,7 +6,7 @@ package Wendy::Shorts;
 require Exporter;
 
 our @ISA         = qw( Exporter );
-our @EXPORT      = qw( gr ar pt pd pm lm );
+our @EXPORT      = qw( gr ar pt pd pm lm lcm );
 our @EXPORT_OK   = @EXPORT;
 our $VERSION     = 1.00;
 
@@ -59,6 +59,11 @@ sub pm
 {
 	my $m = shift;
 	return &pd( &gr( $m ) );
+}
+
+sub lcm
+{
+        return &load_custom_macros( @_ );
 }
 
 1;

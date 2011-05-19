@@ -27,8 +27,7 @@ our @EXPORT      = qw( template_process
 		       get_replace
 		       kill_replace
 		       quoter
-		       load_custom_macros
-		       lcm );
+		       load_custom_macros );
 our @EXPORT_OK   = @EXPORT;
 our %EXPORT_TAGS = ( default => [ qw( ) ] );
 our $VERSION     = 1.00;
@@ -600,11 +599,6 @@ sub load_custom_macros
 	}
 	
         return ( $QUERY_CACHE{ $query } || '' );
-}
-
-sub lcm
-{
-	return &load_custom_macros( @_ );
 }
 
 1;
