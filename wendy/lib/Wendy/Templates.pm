@@ -14,6 +14,7 @@ use Wendy::DataCache;
 
 use File::Spec;
 use XML::Quote;
+use URI;
 
 our @ISA         = qw( Exporter );
 our @EXPORT      = qw( template_process
@@ -25,12 +26,15 @@ our @EXPORT      = qw( template_process
 		       add_replace
 		       get_replace
 		       kill_replace
-		       quoter );
+		       quoteri
+		       load_custom_macros
+		       lcm );
 our @EXPORT_OK   = @EXPORT;
 our %EXPORT_TAGS = ( default => [ qw( ) ] );
 our $VERSION     = 1.00;
 
 our %REPLACES = ();
+my %QUERY_CACHE = ();
 
 my $__replace_regexp = qr/\[([A-Z_0-9\-]+)\]/;
 my $__functional_regexp = qr/^(PROC|TEMPLATE|TEMPLATEC|INCLUDE|TEMPLATEFF|URL|URLFF|LOAD|CTYPE|TTL|CODE|HEADER):([\w\/\-:\.\;\=,\s\+\?\&]+)/;
@@ -554,6 +558,53 @@ sub get_replace
 sub kill_replace
 {
 	return &unset_macros( @_ );
+}
+
+# name => 'macros_name', lng => '[a-z]{2}', addr => 'macros_address', host => '[0-9]+'
+sub load_custom_macros
+{
+        my %args = @_;
+        my $query = '';
+
+	{
+		my $uri = URI -> new();
+
+		use bytes;
+		$uri -> query_form( %args );
+
+		$query = $uri -> as_string();
+	}
+
+	unless( $query )
+	{
+		return '';
+	}
+
+        if( defined $QUERY_CACHE{ $query } )
+        {
+                return $QUERY_CACHE{ $query };
+        }
+
+	my $wobj = \%Wendy::WOBJ;
+
+        my %macroses = &meta_get_records( Table => 'macros m, language l',
+                                          Fields => [ 'm.body as body', 'm.name as id' ],
+                                          Where => sprintf( 'm.host=%d and m.name=%s and m.lng=l.id and l.lng=%s and m.address=%s',
+                                                            ( $args{ 'host' } || $wobj -> { 'HOST' } -> { 'id' } ),
+                                                            &dbquote( $args{ 'name' } ),
+                                                            &dbquote( ( $args{ 'lng' } || $wobj -> { 'LNG' } ) ),
+                                                            &dbquote( $args{ 'addr' } ) ) );
+	if( scalar keys %macroses )
+	{
+		$QUERY_CACHE{ $query } = $macroses{ $args{ 'name' } } -> { 'body' };
+	}
+	
+        return ( $QUERY_CACHE{ $query } || '' );
+}
+
+sub lcm
+{
+	return &load_custom_macros( @_ );
 }
 
 1;
