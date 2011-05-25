@@ -50,7 +50,7 @@ sub handler
 	my $CACHEHIT = 0;
 	my $PROCRV = {};
 
-	my $HANDLERPATH = $ENV{ 'SCRIPT_NAME' } . ( $ENV{ 'PATH_INFO' } or "" ); # just to absorb undef warning
+	my $HANDLERPATH = $ENV{ 'SCRIPT_NAME' } . $ENV{ 'PATH_INFO' };
 	$HANDLERPATH = ( &form_address( $HANDLERPATH ) or 'root' );
 
 	if( &cacheable_request() )
@@ -214,13 +214,12 @@ HANDLERSLOOP:
 
 				# thats a thin place, in case of error in source file we'll crash
 
-				$PROCRV = &{ $full_handler_name }( \%WOBJ );
+				$PROCRV = $full_handler_name -> ( \%WOBJ );
 				$handler_called = 1;
 
 				unless( ref( $PROCRV ) )
 				{
-					my $t_procrv = { 'data' => $PROCRV };
-					$PROCRV = $t_procrv;
+					$PROCRV = { 'data' => $PROCRV };
 				}
 				last HANDLERSLOOP;
 			}
@@ -305,17 +304,17 @@ PROCRV:
 		}
 	}
 
-	if( ref( $PROCRV -> { "headers" } ) )
+	if( my $href = ref( $PROCRV -> { "headers" } ) )
 	{
 		$CCHEADERS = 1;
 
-		if( ref( $PROCRV -> { "headers" } ) eq 'HASH' )
+		if( $href eq 'HASH' )
 		{
 			foreach my $header ( keys %{ $PROCRV -> { "headers" } } )
 			{
 				push @HEADERS_TO_SEND, { $header => $PROCRV -> { "headers" } -> { $header } };
 			}
-		} elsif( ref( $PROCRV -> { "headers" } ) eq 'ARRAY' )
+		} elsif( $href eq 'ARRAY' )
 		{
 			my @t = @{ $PROCRV -> { "headers" } };
 			while( my $key = shift @t )
@@ -353,7 +352,6 @@ PROCRV:
 WORKOUTPUT:
 	if( ( $CACHEHIT == 0 ) and ( $NOCACHE == 0 ) and $CACHEPATH )
 	{
-
 		if( $CCHEADERS )
 		{
 			my $CCFILE = $CACHEPATH . ".headers";
@@ -407,7 +405,7 @@ WORKFINISHED:
 
 	%WOBJ = ();
 
-	return;
+	return Apache2::Const::OK;
 }
 
 sub parse_http_accept_language
@@ -419,9 +417,8 @@ sub parse_http_accept_language
 
 	foreach ( @lq )
 	{
-		my ( $lng, $q ) = split ";q=", $_;
-		$q = 1 unless $q;
-		$outcome{ $lng } = $q;
+		my ( $lng, $q ) = split( ";q=", $_ );
+		$outcome{ $lng } = ( $q or 1 );
 	}
 	return %outcome;
 }
@@ -430,10 +427,9 @@ sub read_customcache_file
 {
 	my $file = shift;
 
-	my $cfh = undef;
 	my @rv = ();
 
-	if( open( $cfh, "<", $file ) )
+	if( open( my $cfh, "<", $file ) )
 	{
 		while( my $line = <$cfh> )
 		{
@@ -502,7 +498,6 @@ sub request_cache_hit
 		
 		if( -f $ccfile )
 		{
-			my $cfh = undef;
 			my %procrv = &read_customcache_file( $ccfile );
 			$rv = \%procrv;
 			
@@ -526,7 +521,6 @@ sub request_cache_hit
 		
 		if( -f $ccfile )
 		{
-			my $cfh;
 			my @cheaders = &read_customcache_file( $ccfile );
 			$rv -> { "headers" } = \@cheaders;
 		}
