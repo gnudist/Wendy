@@ -147,8 +147,6 @@ CETi8lj7Oz:
 	{
 		$code = 400;
 		$msg = 'static is not served';
-		$ctype = 'text/plain';
-		$charset = undef;
 		$DATA_TO_SEND = $msg;
 		$NOCACHE = 1;
 
