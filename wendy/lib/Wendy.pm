@@ -146,8 +146,7 @@ CETi8lj7Oz:
 	} elsif( -f $FILENAME )
 	{
 		$code = 400;
-		$msg = 'static is not served';
-		$DATA_TO_SEND = $msg;
+		$DATA_TO_SEND = $msg = 'static is not served';
 		$NOCACHE = 1;
 
 		goto WORKOUTPUT;
