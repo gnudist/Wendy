@@ -11,6 +11,7 @@ use lib File::Spec -> catdir( CONF_MYPATH, 'lib' );
 
 use Wendy::Memcached;
 use Wendy::Templates;
+use Wendy::Templates::TT;
 use Wendy::Hosts;
 use Wendy::Db;
 use Wendy::Util::File 'save_data_in_file_atomic';
@@ -232,7 +233,29 @@ HANDLERSLOOP:
 
 	unless( $handler_called )
 	{
-		$PROCRV = &template_process();
+		if( &template_exists() )
+		{
+			$PROCRV = &template_process();
+
+		} elsif( &template_exists( my $tpl = $WOBJ -> { "HPATH" } . '.tt' ) )
+		{
+			# No more handlers just for TT templates processing.
+
+			# data_process() over tt() is needed to process Wendy::Templates
+			# standard output keywords (CODE, TTL, etc)
+
+			$PROCRV = &data_process( &tt( $tpl ) );
+
+		} else
+		{
+			$PROCRV = 'Neither template nor handler are defined for this address.';
+		}
+
+		unless( $PROCRV -> { 'nocache' } or $PROCRV -> { 'ttl' } or $PROCRV -> { 'expires' } )
+		{
+			# If you want cache, you gotta say so from now on.
+			$PROCRV -> { 'nocache' } = 1;
+		}
 	}
 
 PROCRV:
