@@ -237,10 +237,14 @@ HANDLERSLOOP:
 		{
 			# No more handlers just for TT templates processing.
 
-			# data_process() over tt() is needed to process Wendy::Templates
-			# standard output keywords (CODE, TTL, etc)
+			# initial template_process() is needed to process Wendy::Templates
+			# standard output keywords (LOAD, CODE, TTL, etc)
 
-			$PROCRV = &data_process( &tt( $tpl ) );
+			$PROCRV = &template_process();
+			if( $PROCRV -> { 'data' } )
+			{
+				$PROCRV -> { 'data' } = &tt_data( $PROCRV -> { 'data' } );
+			}
 
 		} else
 		{
