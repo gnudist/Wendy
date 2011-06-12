@@ -234,12 +234,7 @@ HANDLERSLOOP:
 		if( &template_exists() )
 		{
 			$PROCRV = &template_process();
-
-<<<<<<< HEAD
 		} elsif( &template_exists( my $tpl = $WOBJ{ "HPATH" } . '.tt' ) )
-=======
-		} elsif( &template_exists( my $tpl = $WOBJ{ 'HPATH' } . '.tt' ) )
->>>>>>> 694315a82f63de49ffb866ec0004f5a15802ea67
 		{
 			# No more handlers just for TT templates processing.
 
