@@ -21,6 +21,8 @@ use CGI::Cookie;
 
 use Digest::MD5 'md5_hex';
 
+use Apache2::Const;
+
 our %WOBJ = ();
 
 sub __get_wobj
@@ -233,7 +235,7 @@ HANDLERSLOOP:
 		{
 			$PROCRV = &template_process();
 
-		} elsif( &template_exists( my $tpl = $WOBJ -> { "HPATH" } . '.tt' ) )
+		} elsif( &template_exists( my $tpl = $WOBJ{ "HPATH" } . '.tt' ) )
 		{
 			# No more handlers just for TT templates processing.
 
