@@ -210,7 +210,6 @@ CETi8lj7Oz:
 	{
 		my @handlers = ( $PATHHANDLERSRC,
 				 $METAHANDLERSRC );
-		my $handlername = 'wendy_handler';
 
 HANDLERSLOOP:
 		foreach my $srcfile ( @handlers )
@@ -221,7 +220,7 @@ HANDLERSLOOP:
 
 				my $full_handler_name = join( '::', ( &form_address( $HTTP_HOST{ 'host' } ),
 								      $HANDLERPATH,
-								      $handlername ) );
+								      'wendy_handler' ) );
 
 				unless( exists &{ $full_handler_name } )
 				{
@@ -240,6 +239,7 @@ HANDLERSLOOP:
 				}
 				last HANDLERSLOOP;
 			}
+			$HANDLERPATH = 'meta';
 		}
 	}
 

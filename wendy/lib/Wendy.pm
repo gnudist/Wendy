@@ -11,6 +11,7 @@ use lib File::Spec -> catdir( CONF_MYPATH, 'lib' );
 
 use Wendy::Memcached;
 use Wendy::Templates;
+use Wendy::Templates::TT;
 use Wendy::Hosts;
 use Wendy::Db;
 use Wendy::Util::File 'save_data_in_file_atomic';
@@ -49,7 +50,7 @@ sub handler
 	my $CACHEHIT = 0;
 	my $PROCRV = {};
 
-	my $HANDLERPATH = $ENV{ 'SCRIPT_NAME' } . ( $ENV{ 'PATH_INFO' } or "" ); # just to absorb undef warning
+	my $HANDLERPATH = $ENV{ 'SCRIPT_NAME' } . $ENV{ 'PATH_INFO' };
 	$HANDLERPATH = ( &form_address( $HANDLERPATH ) or 'root' );
 
 	if( &cacheable_request() )
@@ -145,10 +146,7 @@ CETi8lj7Oz:
 	} elsif( -f $FILENAME )
 	{
 		$code = 400;
-		$msg = 'static is not served';
-		$ctype = 'text/plain';
-		$charset = undef;
-		$DATA_TO_SEND = $msg;
+		$DATA_TO_SEND = $msg = 'static is not served';
 		$NOCACHE = 1;
 
 		goto WORKOUTPUT;
@@ -197,7 +195,6 @@ CETi8lj7Oz:
 	{
 		my @handlers = ( $PATHHANDLERSRC,
 				 $METAHANDLERSRC );
-		my $handlername = 'wendy_handler';
 
 HANDLERSLOOP:
 		foreach my $srcfile ( @handlers )
@@ -208,7 +205,7 @@ HANDLERSLOOP:
 
 				my $full_handler_name = join( '::', ( &form_address( $HTTP_HOST{ 'host' } ),
 								      $HANDLERPATH,
-								      $handlername ) );
+								      'wendy_handler' ) );
 
 				unless( exists &{ $full_handler_name } )
 				{
@@ -217,22 +214,48 @@ HANDLERSLOOP:
 
 				# thats a thin place, in case of error in source file we'll crash
 
-				$PROCRV = &{ $full_handler_name }( \%WOBJ );
+				$PROCRV = $full_handler_name -> ( \%WOBJ );
 				$handler_called = 1;
 
 				unless( ref( $PROCRV ) )
 				{
-					my $t_procrv = { 'data' => $PROCRV };
-					$PROCRV = $t_procrv;
+					$PROCRV = { 'data' => $PROCRV };
 				}
 				last HANDLERSLOOP;
 			}
+			$HANDLERPATH = 'meta';
 		}
 	}
 
 	unless( $handler_called )
 	{
-		$PROCRV = &template_process();
+		if( &template_exists() )
+		{
+			$PROCRV = &template_process();
+
+		} elsif( &template_exists( my $tpl = $WOBJ -> { "HPATH" } . '.tt' ) )
+		{
+			# No more handlers just for TT templates processing.
+
+			# initial template_process() is needed to process Wendy::Templates
+			# standard output keywords (LOAD, CODE, TTL, etc)
+
+			$PROCRV = &template_process();
+			if( $PROCRV -> { 'data' } )
+			{
+				$PROCRV -> { 'data' } = &tt_data( $PROCRV -> { 'data' } );
+			}
+
+		} else
+		{
+			$PROCRV = 'Neither template nor handler are defined for this address.';
+		}
+
+		unless( $PROCRV -> { 'nocache' } or $PROCRV -> { 'ttl' } or $PROCRV -> { 'expires' } )
+		{
+			# If you want cache, you gotta say so from now on.
+			$PROCRV -> { 'nocache' } = 1;
+		}
 	}
 
 PROCRV:
@@ -285,17 +308,17 @@ PROCRV:
 		}
 	}
 
-	if( ref( $PROCRV -> { "headers" } ) )
+	if( my $href = ref( $PROCRV -> { "headers" } ) )
 	{
 		$CCHEADERS = 1;
 
-		if( ref( $PROCRV -> { "headers" } ) eq 'HASH' )
+		if( $href eq 'HASH' )
 		{
 			foreach my $header ( keys %{ $PROCRV -> { "headers" } } )
 			{
 				push @HEADERS_TO_SEND, { $header => $PROCRV -> { "headers" } -> { $header } };
 			}
-		} elsif( ref( $PROCRV -> { "headers" } ) eq 'ARRAY' )
+		} elsif( $href eq 'ARRAY' )
 		{
 			my @t = @{ $PROCRV -> { "headers" } };
 			while( my $key = shift @t )
@@ -333,7 +356,6 @@ PROCRV:
 WORKOUTPUT:
 	if( ( $CACHEHIT == 0 ) and ( $NOCACHE == 0 ) and $CACHEPATH )
 	{
-
 		if( $CCHEADERS )
 		{
 			my $CCFILE = $CACHEPATH . ".headers";
@@ -387,7 +409,7 @@ WORKFINISHED:
 
 	%WOBJ = ();
 
-	return;
+	return Apache2::Const::OK;
 }
 
 sub parse_http_accept_language
@@ -399,9 +421,8 @@ sub parse_http_accept_language
 
 	foreach ( @lq )
 	{
-		my ( $lng, $q ) = split ";q=", $_;
-		$q = 1 unless $q;
-		$outcome{ $lng } = $q;
+		my ( $lng, $q ) = split( ";q=", $_ );
+		$outcome{ $lng } = ( $q or 1 );
 	}
 	return %outcome;
 }
@@ -410,10 +431,9 @@ sub read_customcache_file
 {
 	my $file = shift;
 
-	my $cfh = undef;
 	my @rv = ();
 
-	if( open( $cfh, "<", $file ) )
+	if( open( my $cfh, "<", $file ) )
 	{
 		while( my $line = <$cfh> )
 		{
@@ -482,7 +502,6 @@ sub request_cache_hit
 		
 		if( -f $ccfile )
 		{
-			my $cfh = undef;
 			my %procrv = &read_customcache_file( $ccfile );
 			$rv = \%procrv;
 			
@@ -506,7 +525,6 @@ sub request_cache_hit
 		
 		if( -f $ccfile )
 		{
-			my $cfh;
 			my @cheaders = &read_customcache_file( $ccfile );
 			$rv -> { "headers" } = \@cheaders;
 		}
