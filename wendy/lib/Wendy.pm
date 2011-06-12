@@ -18,7 +18,7 @@ use Wendy::Util::File 'save_data_in_file_atomic';
 
 use CGI;
 use CGI::Cookie;
-
+use Apache2::Const;
 use Digest::MD5 'md5_hex';
 
 use Apache2::Const;
@@ -235,14 +235,18 @@ HANDLERSLOOP:
 		{
 			$PROCRV = &template_process();
 
+<<<<<<< HEAD
 		} elsif( &template_exists( my $tpl = $WOBJ{ "HPATH" } . '.tt' ) )
+=======
+		} elsif( &template_exists( my $tpl = $WOBJ{ 'HPATH' } . '.tt' ) )
+>>>>>>> 694315a82f63de49ffb866ec0004f5a15802ea67
 		{
 			# No more handlers just for TT templates processing.
 
 			# initial template_process() is needed to process Wendy::Templates
 			# standard output keywords (LOAD, CODE, TTL, etc)
 
-			$PROCRV = &template_process();
+			$PROCRV = &template_process( $tpl );
 			if( $PROCRV -> { 'data' } )
 			{
 				$PROCRV -> { 'data' } = &tt_data( $PROCRV -> { 'data' } );
