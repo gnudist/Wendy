@@ -4,79 +4,35 @@ use strict;
 
 package Wendy::Config;
 
-require Exporter;
-
+use Moose;
 use File::Spec;
 
-use constant {
-
-	CONF_DBNAME     => '%DATABASE_NAME%',
-	CONF_DBUSER     => '%DATABASE_USER%',
-	CONF_DBPORT     => int( '%DATABASE_PORT%' ),
-	CONF_DBHOST     => '%DATABASE_HOST%', # or array reference: [ 'localhost', 'otherhost' ]
-	CONF_DBPASSWORD => '%DATABASE_PASSWORD%',
-
-	CONF_WDBHOST    => undef,       # if you want to read from one hosts, and write to another
-	                                # may specify array reference: [ 'localhost', 'otherhost' ]
-                                        # otherwise set to undef
-
-	CONF_DEFHOST    => '%DEFAULT_HOST%',
-	CONF_MYPATH     => '%WENDY_INSTALLATION_DIRECTORY%',
-	CONF_VARPATH    => File::Spec -> catdir( '%WENDY_INSTALLATION_DIRECTORY%', 'var' ),
-
-	CONF_MEMCACHED  => 0,
-	CONF_MC_SERVERS => [ '127.0.0.1:11211' ], # may put here several records
-	CONF_MC_THRHOLD => 10000,
-	CONF_MC_NORHASH => 0,
-
-	CONF_NOCACHE    => 0
-};
-
-our $WENDY_VERSION     = '0.0.2011072201';
-
-our @ISA         = qw( Exporter );
-our @EXPORT      = qw( CONF_DEFHOST
-		       CONF_MYPATH
-		       CONF_VARPATH
-		       CONF_NOCACHE
-		       $WENDY_VERSION
-		       CONF_MEMCACHED );
-our @EXPORT_OK   = qw( CONF_VARPATH
-		       CONF_MYPATH
-		       CONF_DEFHOST
-		       CONF_DBNAME
-		       CONF_DBUSER
-		       CONF_DBPORT
-		       CONF_DBHOST
-		       CONF_WDBHOST
-		       CONF_DBPASSWORD
-		       CONF_NOCACHE
-		       $WENDY_VERSION
-		       CONF_MEMCACHED
-		       CONF_MC_SERVERS
-		       CONF_MC_THRHOLD
-		       CONF_MC_NORHASH );
-our %EXPORT_TAGS = ( dbauth => [
-				qw( 
-				    CONF_DBNAME
-				    CONF_DBUSER
-				    CONF_DBPORT
-				    CONF_DBHOST
-				    CONF_WDBHOST
-				    CONF_DBPASSWORD
-				    )
-				],
-		     memcached => [
-				   qw(
-				      CONF_MEMCACHED
-				      CONF_MC_SERVERS
-				      CONF_MC_THRHOLD
-				      CONF_MC_NORHASH 
-				      )
-				   ]);
+has 'DBNAME' => ( is => 'ro', isa => 'Str', default => '%DATABASE_NAME%' );
+has 'DBUSER' => ( is => 'ro', isa => 'Str', default => '%DATABASE_USER%' );
+has 'DBPASSWORD' => ( is => 'ro', isa => 'Str', default => '%DATABASE_PASSWORD%' );
+has 'DBPORT' => ( is => 'ro', isa => 'Int', default => int( '%DATABASE_PORT%' ) );
+has 'DBHOST' => ( is => 'ro', isa => 'ArrayRef[Str]', default => [ '%DATABASE_HOST%' ] );
 
 
-################################################################################
+# if you want to read from one hosts, and write to another
+# otherwise set to false
 
+has 'WDBHOST' => ( is => 'ro', isa => 'Str', default => '' ); 
 
-1;
+has 'DEFHOST' => ( is => 'ro', isa => 'Str', default => '%DEFAULT_HOST%' );
+has 'MYPATH' => ( is => 'ro', isa => 'Str', default => '%WENDY_INSTALLATION_DIRECTORY%' );
+
+has 'VARPATH' => ( is => 'ro', isa => 'Str', default => File::Spec -> catdir( '%WENDY_INSTALLATION_DIRECTORY%', 'var' ) );
+
+has 'MEMCACHED' => ( is => 'ro', isa => 'Bool', default => 0 );
+
+# may put here several records
+has 'MC_SERVERS' => ( is => 'ro', isa => 'ArrayRef[Str]', default => [ '127.0.0.1:11211' ] ); 
+has 'THRHOLD' => ( is => 'ro', isa => 'Int', default => 10000 );
+has 'NORHASH' => ( is => 'ro', isa => 'Bool', default => 0 );
+has 'NOCACHE' => ( is => 'ro', isa => 'Bool', default => 0 );
+has 'VERSION' => ( is => 'ro', isa => 'Str', default => '0.0.2011072201' );
+
+no Moose;
+
+42;
