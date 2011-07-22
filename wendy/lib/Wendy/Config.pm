@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 use strict;
 
 package Wendy::Config;
@@ -24,14 +22,16 @@ has 'MYPATH' => ( is => 'ro', isa => 'Str', default => '%WENDY_INSTALLATION_DIRE
 
 has 'VARPATH' => ( is => 'ro', isa => 'Str', default => File::Spec -> catdir( '%WENDY_INSTALLATION_DIRECTORY%', 'var' ) );
 
-has 'MEMCACHED' => ( is => 'ro', isa => 'Bool', default => 0 );
-
-# may put here several records
-has 'MC_SERVERS' => ( is => 'ro', isa => 'ArrayRef[Str]', default => [ '127.0.0.1:11211' ] ); 
-has 'THRHOLD' => ( is => 'ro', isa => 'Int', default => 10000 );
-has 'NORHASH' => ( is => 'ro', isa => 'Bool', default => 0 );
 has 'NOCACHE' => ( is => 'ro', isa => 'Bool', default => 0 );
 has 'VERSION' => ( is => 'ro', isa => 'Str', default => '0.0.2011072201' );
+
+
+
+has 'MEMCACHED' => ( is => 'ro', isa => 'Bool', default => 0 );
+# may put here several records in servers
+has 'MC_SERVERS' => ( is => 'ro', isa => 'ArrayRef[Str]', default => [ '127.0.0.1:11211' ] ); 
+has 'MC_THRHOLD' => ( is => 'ro', isa => 'Int', default => 10000 );
+has 'MC_NORHASH' => ( is => 'ro', isa => 'Bool', default => 0 );
 
 no Moose;
 
