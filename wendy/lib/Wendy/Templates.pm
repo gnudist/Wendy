@@ -10,10 +10,12 @@ use Wendy::Config;
 use Wendy::Db;
 use Wendy::Procs;
 use Wendy::Util ( 'in', 'download_url', 'meta_get_records', 'meta_get_record' );
+use Wendy::Util::String 'despace';
 use Wendy::DataCache;
 
 use File::Spec;
 use XML::Quote;
+use URI;
 
 our @ISA         = qw( Exporter );
 our @EXPORT      = qw( template_process
@@ -33,7 +35,7 @@ our $VERSION     = 1.00;
 our %REPLACES = ();
 
 my $__replace_regexp = qr/\[([A-Z_0-9\-]+)\]/;
-my $__functional_regexp = qr/^(PROC|TEMPLATE|TEMPLATEC|INCLUDE|TEMPLATEFF|URL|URLFF|LOAD|CTYPE|TTL|CODE|HEADER):([\w\/\-:\.\;\=,\s\+\?\&]+)/;
+my $__functional_regexp = qr/^(PROC|TEMPLATE|TEMPLATEC|INCLUDE|TEMPLATEFF|URL|URLFF|LOAD|CTYPE|TTL|CODE|HEADER|LANGUAGE):([\w\/\-:\.\;\=,\s\+\?\&]+)/;
 
 sub quoter
 {
@@ -374,6 +376,32 @@ VNR8cv0oP5bIFmDL:
 					&load_macros( HostId => $WOBJ -> { "HOST" } -> { "id" },
 						      Address => $argument,
 						      Lng => $WOBJ -> { "RLNGS" } -> { $WOBJ -> { "LNG" } } );
+				}
+			}  elsif( $keyword eq 'LANGUAGE' )
+			{
+				my @l = grep { $_ } split( /:/, &despace( $argument ) );
+				if( @l )
+				{
+					unless( &in( $WOBJ -> { 'LNG' }, @l ) )
+					{
+						my $reload_url = 'http';
+						
+						if( $ENV{ 'HTTP_HTTPS' } or $ENV{ 'HTTPS' } )
+						{
+							$reload_url = 'https';
+						}
+						$reload_url .= '://' . $WOBJ -> { 'HOST' } -> { 'host' };
+						$reload_url .= $ENV{ 'REQUEST_URI' };
+						
+						my $u = URI -> new( $reload_url );
+						my %h = $u -> query_form();
+						$h{ 'lng' } = $l[ 0 ];
+						$u -> query_form( %h );
+
+						return { nocache => 1,
+							 code => 302,
+							 headers => { Location => $u -> as_string() } };
+					}
 				}
 			}
 		}
