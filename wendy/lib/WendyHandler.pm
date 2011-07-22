@@ -16,6 +16,8 @@ sub handler
 
 	my $wendyout = $wendy -> output();
 
+	$wendyout -> load_macros();
+
 	my $wendyrv = $wendyout -> finish();
 
 	return $wendy -> mod_perl_return( $wendyrv, $r );
