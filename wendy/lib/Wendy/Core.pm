@@ -4,6 +4,8 @@ package Wendy::Core;
 
 use Moose;
 
+use Wendy::Config;
+
 has 'path'    => ( is => 'rw', isa => 'Wendy::Path'    );
 has 'host'    => ( is => 'rw', isa => 'Wendy::Host'    );
 has 'dbh'     => ( is => 'rw', isa => 'Wendy::DB'      );
@@ -19,7 +21,16 @@ sub BUILD
 
 	my $self = shift;
 
+	$self -> path( Wendy::Path -> new() );
+	$self -> conf( Wendy::Config -> new() );
+	$self -> dbh( Wendy::Db -> new() );
+	$self -> host( Wendy::Host -> new() );
+
+
+
 }
+
+
 
 no Moose;
 

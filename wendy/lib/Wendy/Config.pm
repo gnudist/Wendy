@@ -5,6 +5,8 @@ package Wendy::Config;
 use Moose;
 use File::Spec;
 
+my $cached = undef;
+
 has 'DBNAME' => ( is => 'ro', isa => 'Str', default => '%DATABASE_NAME%' );
 has 'DBUSER' => ( is => 'ro', isa => 'Str', default => '%DATABASE_USER%' );
 has 'DBPASSWORD' => ( is => 'ro', isa => 'Str', default => '%DATABASE_PASSWORD%' );
@@ -26,12 +28,31 @@ has 'NOCACHE' => ( is => 'ro', isa => 'Bool', default => 0 );
 has 'VERSION' => ( is => 'ro', isa => 'Str', default => '0.0.2011072201' );
 
 
-
 has 'MEMCACHED' => ( is => 'ro', isa => 'Bool', default => 0 );
 # may put here several records in servers
 has 'MC_SERVERS' => ( is => 'ro', isa => 'ArrayRef[Str]', default => [ '127.0.0.1:11211' ] ); 
 has 'MC_THRHOLD' => ( is => 'ro', isa => 'Int', default => 10000 );
 has 'MC_NORHASH' => ( is => 'ro', isa => 'Bool', default => 0 );
+
+sub BUILD
+{
+	my $self = shift;
+	$cached = $self;
+}
+
+sub cached 
+{
+	return $cached;
+}
+
+sub random_db_host
+{
+	my $self = shift;
+
+	my @hosts = @{ $self -> DBHOST() };
+
+	return $hosts[ rand @hosts ];
+}
 
 no Moose;
 
