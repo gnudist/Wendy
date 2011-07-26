@@ -4,7 +4,7 @@ package Wendy::Request;
 
 use Moose;
 
-has 'apachereq' => ( is => 'rw', isa => 'Object' );
+has 'mod_perl_req' => ( is => 'rw', isa => 'Apache2::RequestRec' );
 
 
 no Moose;

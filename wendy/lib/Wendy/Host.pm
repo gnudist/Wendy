@@ -79,6 +79,26 @@ sub init
 
 }
 
+sub has_language
+{
+	my $self = shift;
+
+	my $language_name = shift;
+
+	my $rv = undef;
+
+uOvotgH7xPKKSgRt:
+	foreach my $l ( @{ $self -> languages() } )
+	{
+		if( $l -> name() eq $language_name )
+		{
+			$rv = $l;
+			last uOvotgH7xPKKSgRt;
+		}
+	}
+	return $rv;
+}
+
 no Moose;
 
 42;

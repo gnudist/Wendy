@@ -14,7 +14,7 @@ sub BUILD
 	$self -> holder( \%c );
 }
 
-sub cookie
+sub value
 {
 	my $self = shift;
 

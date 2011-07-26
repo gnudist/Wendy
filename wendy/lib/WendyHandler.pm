@@ -12,7 +12,7 @@ sub handler
 {
 	my $r = shift;
 
-	my $wendy = Wendy::Core -> new( req => $r );
+	my $wendy = Wendy::Core -> new( mod_perl_req => $r );
 
 	my $wendyout = $wendy -> output();
 
@@ -20,7 +20,7 @@ sub handler
 
 	my $wendyrv = $wendyout -> finish();
 
-	return $wendy -> mod_perl_return( $wendyrv, $r );
+	return $wendy -> mod_perl_return( $wendyrv );
 }
 
 
