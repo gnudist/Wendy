@@ -109,6 +109,18 @@ sub errstr
 
 }
 
+sub quote
+{
+	my $self = shift;
+
+	unless( ref( $self ) )
+	{
+		return $cached -> quote( @_ );
+	}
+	return $self -> dbh() -> quote( @_ );
+
+}
+
 sub selectrow
 {
 	my $self = shift;
