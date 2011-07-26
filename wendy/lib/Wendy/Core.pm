@@ -123,6 +123,17 @@ sub http_accept_languages
 
 }
 
+sub output
+{
+	# TODO: spawn output object
+
+	my $self = shift;
+
+
+
+
+}
+
 
 no Moose;
 
