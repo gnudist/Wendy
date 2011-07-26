@@ -8,7 +8,7 @@ use Wendy::Config;
 
 has 'path'    => ( is => 'rw', isa => 'Wendy::Path'    );
 has 'host'    => ( is => 'rw', isa => 'Wendy::Host'    );
-has 'dbh'     => ( is => 'rw', isa => 'Wendy::DB'      );
+has 'dbh'     => ( is => 'rw', isa => 'Wendy::Db'      );
 has 'cgi'     => ( is => 'rw', isa => 'Wendy::CGI'     );
 has 'req'     => ( is => 'rw', isa => 'Wendy::Request' );
 has 'lng'     => ( is => 'rw', isa => 'Wendy::Lng'     );

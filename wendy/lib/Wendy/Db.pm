@@ -81,7 +81,7 @@ sub prepare
 
 	unless( ref( $self ) )
 	{
-		return $cached -> dbprepare( @_ );
+		return $cached -> prepare( @_ );
 	}
 
 	my $sql = shift;
@@ -121,13 +121,13 @@ sub quote
 
 }
 
-sub selectrow
+sub selectrow_hashref
 {
 	my $self = shift;
 
 	unless( ref( $self ) )
 	{
-		return $cached -> selectrow( @_ );
+		return $cached -> selectrow_hashref( @_ );
 	}
 
 	my $sql = shift;
@@ -136,5 +136,7 @@ sub selectrow
 }
 
 no Moose;
+
+# wheres moose ?
 
 42;
