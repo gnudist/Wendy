@@ -33,7 +33,7 @@ sub BUILD
 		$self -> req( Wendy::Request -> new( mod_perl_req => $r ) );
 	} else
 	{
-		die 'no other reqs support';
+		die 'no other reqs support (yet!)';
 	}
 
 	# choose most appropriate language from host's languages
