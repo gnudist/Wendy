@@ -6,6 +6,8 @@ use Moose;
 
 has 'holder' => ( is => 'rw', isa => 'HashRef', default => sub { {} } );
 
+use CGI::Cookie;
+
 sub BUILD
 {
 	my $self = shift;

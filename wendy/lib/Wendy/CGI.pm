@@ -6,6 +6,8 @@ use Moose;
 
 has 'cgi' => ( is => 'rw', isa => 'CGI' );
 
+use CGI;
+
 sub BUILD
 {
 	my $self = shift;
@@ -16,6 +18,8 @@ sub BUILD
 
 sub param
 {
+	my $self = shift;
+
 	my $n = shift;
 
 	return scalar $self -> cgi() -> param( $n );
@@ -23,6 +27,8 @@ sub param
 
 sub upload
 {
+	my $self = shift;
+
 	my $n = shift;
 
 	return scalar $self -> cgi() -> upload( $n );
@@ -30,6 +36,8 @@ sub upload
 
 sub vars
 {
+	my $self = shift;
+
 	return $self -> cgi() -> Vars();
 }
 

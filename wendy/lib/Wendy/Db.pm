@@ -1,6 +1,6 @@
 use strict;
 
-package Wendy::DB;
+package Wendy::Db;
 
 use Moose;
 
@@ -9,6 +9,8 @@ use Wendy::Config;
 my $cached = undef;
 
 has 'dbh' => ( is => 'rw', isa => 'DBI::db' );
+
+use DBI;
 
 sub BUILD
 {
@@ -63,7 +65,7 @@ sub cached
 
 sub _do_connect
 {
-	my ( $host, $db, $port, $user, $pass );
+	my ( $host, $db, $port, $user, $pass ) = @_;
 
 	my $dbh = DBI -> connect( 'dbi:Pg:dbname=' . $db . ';host=' . $host . ';port=' . $port,
 			          $user,

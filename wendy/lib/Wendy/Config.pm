@@ -11,7 +11,7 @@ has 'DBNAME' => ( is => 'ro', isa => 'Str', default => '%DATABASE_NAME%' );
 has 'DBUSER' => ( is => 'ro', isa => 'Str', default => '%DATABASE_USER%' );
 has 'DBPASSWORD' => ( is => 'ro', isa => 'Str', default => '%DATABASE_PASSWORD%' );
 has 'DBPORT' => ( is => 'ro', isa => 'Int', default => int( '%DATABASE_PORT%' ) );
-has 'DBHOST' => ( is => 'ro', isa => 'ArrayRef[Str]', default => [ '%DATABASE_HOST%' ] );
+has 'DBHOST' => ( is => 'ro', isa => 'ArrayRef[Str]', default => sub { [ '%DATABASE_HOST%' ] } );
 
 
 # if you want to read from one hosts, and write to another
@@ -30,7 +30,7 @@ has 'VERSION' => ( is => 'ro', isa => 'Str', default => '0.0.2011072201' );
 
 has 'MEMCACHED' => ( is => 'ro', isa => 'Bool', default => 0 );
 # may put here several records in servers
-has 'MC_SERVERS' => ( is => 'ro', isa => 'ArrayRef[Str]', default => [ '127.0.0.1:11211' ] ); 
+has 'MC_SERVERS' => ( is => 'ro', isa => 'ArrayRef[Str]', default => sub { [ '127.0.0.1:11211' ] } ); 
 has 'MC_THRHOLD' => ( is => 'ro', isa => 'Int', default => 10000 );
 has 'MC_NORHASH' => ( is => 'ro', isa => 'Bool', default => 0 );
 

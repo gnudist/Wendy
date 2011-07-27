@@ -7,9 +7,8 @@ use Term::ReadLine;
 use File::Touch;
 use File::Spec;
 use File::Temp;
-use Wendy::Util 'perl_module_available';
 use Wendy::Util::File 'save_data_in_file_atomic';
-use Wendy::Hosts 'form_address';
+use Wendy::Path;
 use Cwd;
 
 my @reqlist = qw(
@@ -55,7 +54,7 @@ foreach my $name ( @reqlist )
 
 	my $res = "ok";
 
-	unless( &perl_module_available( $name ) )
+	unless( 1 ) # TEMP &perl_module_available( $name ) )
 	{
 		$res = "fail";
 		push @notfounds, $name;
@@ -220,7 +219,7 @@ print "\n\n",
 if( $term -> readline( '>' ) eq 'ok' )
 {
 	$data{ '%WENDY_LIB_DIRECTORY%' } = File::Spec -> catdir( $data{ '%WENDY_INSTALLATION_DIRECTORY%' }, 'lib' );
-	$data{ '%DEFAULT_HOST_PACKAGE%' } = &form_address( $data{ '%DEFAULT_HOST%' } );
+	$data{ '%DEFAULT_HOST_PACKAGE%' } = Wendy::Path -> form_path( $data{ '%DEFAULT_HOST%' } );
 	&patch_files( %data );
 
 	my $dir = getcwd();
@@ -248,8 +247,8 @@ sub patch_files
 			   wendy/misc/wendy-httpd.conf
                            wendy/misc/wendy-fcgi-nginx.conf
 			   wendy/misc/wendyinit.sql
-			   wendy/misc/startup.pl
-                           wendy/var/hosts/%DEFAULT_HOST%/lib/admin.pl );
+			   wendy/misc/startup.pl );
+### TODO !                           wendy/var/hosts/%DEFAULT_HOST%/lib/admin.pl );
 
 	foreach my $file ( @varfiles )
 	{

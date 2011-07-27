@@ -4,7 +4,7 @@ package Wendy::Core;
 
 use Moose;
 
-use Wendy::Config;
+
 
 has 'path'    => ( is => 'rw', isa => 'Wendy::Path'    );
 has 'host'    => ( is => 'rw', isa => 'Wendy::Host'    );
@@ -16,6 +16,15 @@ has 'cookie'  => ( is => 'rw', isa => 'Wendy::Cookie'  );
 has 'conf'    => ( is => 'rw', isa => 'Wendy::Config'  );
 has 'mod_perl_req' => ( is => 'rw', isa => 'Apache2::RequestRec' );
 
+
+use Wendy::Path;
+use Wendy::Config;
+use Wendy::Db;
+use Wendy::Host;
+use Wendy::CGI;
+use Wendy::Request;
+use Wendy::Cookie;
+
 sub BUILD
 {
 	# actual constructor
@@ -25,7 +34,9 @@ sub BUILD
 	$self -> path( Wendy::Path -> new() );
 	$self -> conf( Wendy::Config -> new() );
 	$self -> dbh( Wendy::Db -> new() );
+
 	$self -> host( Wendy::Host -> new() );
+
 	$self -> cgi( Wendy::CGI -> new() );
 
 	if( my $r = $self -> mod_perl_req() )
@@ -50,19 +61,24 @@ sub language_init
 {
 	my $self = shift;
 
+	# 1. from query param ?lng=
 	unless( $self -> lng() )
 	{
-		if( ( my $l = $self -> cgi() -> param( 'lng' ) )
+		my $l = undef;
+
+		if( ( $l = $self -> cgi() -> param( 'lng' ) )
 		    and
 		    ( my $lo = $self -> host() -> has_language( $l ) ) )
 		{
 			$self -> lng( $lo );
 		}
 	}
-
+	
+	# 2. from cookie lng
 	unless( $self -> lng() )
 	{
-		if( ( my $c = $self -> cookie() -> value( 'lng' ) )
+		my $c = undef;
+		if( ( $c = $self -> cookie() -> value( 'lng' ) )
 		    and
 		    ( my $lo = $self -> host() -> has_language( $c ) ) )
 		{
@@ -70,6 +86,7 @@ sub language_init
 		}
 	}
 
+	# 3. guessing from http-accept-language request header
 	unless( $self -> lng() )
 	{
 KJXrK99GIPWBJpCe:
@@ -123,14 +140,25 @@ sub http_accept_languages
 
 }
 
-sub output
+sub auto_output
 {
-	# TODO: spawn output object
+	# TODO: discover and spawn output object
 
 	my $self = shift;
 
+	my $host = $self -> host();
+	my $path = $self -> path();
 
 
+	if( my $t = $host -> has_path( $path ) )
+	{
+		1;
+	} elsif( $host -> has_map( $path ) )
+	{
+		2;
+	}
+
+	die 'also not implemented';
 
 }
 

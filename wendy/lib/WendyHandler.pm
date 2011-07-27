@@ -14,13 +14,12 @@ sub handler
 
 	my $wendy = Wendy::Core -> new( mod_perl_req => $r );
 
-	my $wendyout = $wendy -> output();
+	my $wendyout = $wendy -> auto_output();
 
-	$wendyout -> load_macros();
 
-	my $wendyrv = $wendyout -> finish();
+	my $rv = $wendyout -> finish();
 
-	return $wendy -> mod_perl_return( $wendyrv );
+	return $wendy -> mod_perl_return( $rv );
 }
 
 

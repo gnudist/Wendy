@@ -18,7 +18,7 @@ sub BUILD
 {
 	my $self = shift;
 
-	my $force_host_name = shift;
+	my $force_host_name = $self -> name();
 	
 	unless( $self -> init( $force_host_name or lc( $ENV{ 'HTTP_HOST' } ) ) )
 	{
@@ -65,7 +65,7 @@ sub init
 
 		$self -> defaultlng( Wendy::Lng -> new( id => $host_rec -> { 'defaultlng' } ) );
 
-
+	
 	} else
 	{
 		if( my $alias_rec = Wendy::Util::Db -> query( Table => 'wendy_host_alias a,wendy_host h',
@@ -76,6 +76,8 @@ sub init
 			return $self -> init( $alias_rec -> { 'name' } );
 		}
 	}
+
+	return 1;
 
 }
 
@@ -97,6 +99,21 @@ uOvotgH7xPKKSgRt:
 		}
 	}
 	return $rv;
+}
+
+sub has_path
+{
+	my $self = shift;
+
+	my $path = shift;
+
+	my $conf = Wendy::Config -> cached();
+
+	# we check path, we find script or template (in this order)
+
+	die 'not implemented';
+
+
 }
 
 no Moose;
