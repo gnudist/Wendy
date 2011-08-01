@@ -388,7 +388,7 @@ WORKOUTPUT:
 		foreach my $header ( @HEADERS_TO_SEND )
 		{
 			my ( $key, $value ) = %$header;
-			$r -> headers_out -> { $key } = $value;
+			$r -> headers_out() -> add( $key => $value );
 		}
 	}
 
