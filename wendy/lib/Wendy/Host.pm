@@ -1,12 +1,14 @@
 use strict;
 
-package Wendy::Host;
-
-use Moose;
-
 use Wendy::Util::Db;
 use Wendy::Config;
 use Wendy::Lng;
+
+use File::Spec;
+
+package Wendy::Host;
+
+use Moose;
 
 has 'id' => ( is => 'rw', isa => 'Int' );
 has 'name' => ( is => 'rw', isa => 'Str' );
@@ -111,11 +113,49 @@ sub has_path
 
 	# we check path, we find script or template (in this order)
 
-	die 'not implemented';
+	my $requested = File::Spec -> canonpath( File::Spec -> catfile( $conf -> VARPATH(),
+									'hosts',
+									$self -> name(),
+									'htdocs',
+									$path -> addr() ) );
+
+	my $rv = 0;
+
+	if( -d $requested )
+	{
+		$rv = 1;
+	}
+
+	return $rv;
 
 
 }
 
-no Moose;
+sub has_template
+{
+	my $self = shift;
+	my $path = shift;
+
+	my $conf = Wendy::Config -> cached();
+
+	my $requested = File::Spec -> canonpath( File::Spec -> catfile( $conf -> VARPATH(),
+									'hosts',
+									$self -> name(),
+									'tpl',
+									$path -> path() ) );
+
+	my $rv = undef;
+
+	if( -f $requested )
+	{
+		$rv = Wendy::Template -> new( host => $self,
+					      path => $path );
+	}
+	
+	return $rv;
+
+}
+
+
 
 42;

@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 use strict;
 
 package Wendy::Util::File;
@@ -10,11 +8,8 @@ use File::Temp ':mktemp';
 require Exporter;
 
 our @ISA         = qw( Exporter );
-
 our @EXPORT      = qw( save_data_in_file_atomic );
-
 our @EXPORT_OK   = @EXPORT;
-
 our $VERSION     = 0.01;
 
 sub save_data_in_file_atomic
@@ -43,4 +38,4 @@ sub save_data_in_file_atomic
 	return $rc;
 }
 
-1;
+42;

@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # handy shortcuts for everyday use!
 
 use strict;

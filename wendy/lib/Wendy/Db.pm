@@ -1,10 +1,11 @@
 use strict;
 
+use Wendy::Config;
+
 package Wendy::Db;
 
 use Moose;
 
-use Wendy::Config;
 
 my $cached = undef;
 
@@ -137,7 +138,6 @@ sub selectrow_hashref
 	return $self -> dbh() -> selectrow_hashref( $sql );
 }
 
-no Moose;
 
 # wheres moose ?
 

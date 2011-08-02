@@ -54,6 +54,5 @@ sub random_db_host
 	return $hosts[ rand @hosts ];
 }
 
-no Moose;
 
 42;

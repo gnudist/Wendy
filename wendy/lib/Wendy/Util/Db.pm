@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 use strict;
 
 package Wendy::Util::Db;

@@ -41,6 +41,4 @@ sub vars
 	return $self -> cgi() -> Vars();
 }
 
-no Moose;
-
 42;

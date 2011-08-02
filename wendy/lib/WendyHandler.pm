@@ -16,8 +16,7 @@ sub handler
 
 	my $wendyout = $wendy -> auto_output();
 
-
-	my $rv = $wendyout -> finish();
+	my $rv = $wendyout -> execute();
 
 	return $wendy -> mod_perl_return( $rv );
 }

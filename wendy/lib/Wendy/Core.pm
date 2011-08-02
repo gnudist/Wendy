@@ -1,10 +1,17 @@
 use strict;
 
+use Wendy::Path;
+use Wendy::Config;
+use Wendy::Db;
+use Wendy::Host;
+use Wendy::CGI;
+use Wendy::Request;
+use Wendy::Cookie;
+use Wendy::Out;
+
 package Wendy::Core;
 
 use Moose;
-
-
 
 has 'path'    => ( is => 'rw', isa => 'Wendy::Path'    );
 has 'host'    => ( is => 'rw', isa => 'Wendy::Host'    );
@@ -15,15 +22,6 @@ has 'lng'     => ( is => 'rw', isa => 'Wendy::Lng'     );
 has 'cookie'  => ( is => 'rw', isa => 'Wendy::Cookie'  );
 has 'conf'    => ( is => 'rw', isa => 'Wendy::Config'  );
 has 'mod_perl_req' => ( is => 'rw', isa => 'Apache2::RequestRec' );
-
-
-use Wendy::Path;
-use Wendy::Config;
-use Wendy::Db;
-use Wendy::Host;
-use Wendy::CGI;
-use Wendy::Request;
-use Wendy::Cookie;
 
 sub BUILD
 {
@@ -149,20 +147,45 @@ sub auto_output
 	my $host = $self -> host();
 	my $path = $self -> path();
 
+	my $output = Wendy::Out -> new();
 
-	if( my $t = $host -> has_path( $path ) )
+	if( $host -> has_path( $path ) )
 	{
-		1;
+
+		if( my $t = $host -> has_template( $path ) )
+		{
+			$t -> lng( $self -> lng() );
+			$output -> template( $t );
+
+		} else
+		{
+			# well think of something more polite
+			# later
+			die sprintf( 'host %s has address %s but has no template or handler defined',
+				     $host -> name(),
+				     $path -> addr() );
+		}
+
+
+
 	} elsif( $host -> has_map( $path ) )
 	{
+
 		2;
+
+	} else
+	{
+		# 404 err
+		# TODO
+		die 'nuff said';
+		
 	}
 
-	die 'also not implemented';
+	return $output;
 
 }
 
 
-no Moose;
+
 
 42;

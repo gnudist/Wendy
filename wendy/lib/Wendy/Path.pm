@@ -3,9 +3,14 @@ use strict;
 package Wendy::Path;
 
 use Moose;
+use Moose::Util::TypeConstraints;
 
 has 'path' => ( is => 'rw', isa => 'Str' );
 has 'addr' => ( is => 'rw', isa => 'Str' );
+
+coerce 'Str',
+    from 'Wendy::Path',
+    via { $_ -> path() };
 
 use Data::Dumper;
 
@@ -32,7 +37,5 @@ sub form_path
 
 	return join( "_",  grep { $_ } split( /\W+/, $p ) );
 }
-
-no Moose;
 
 42;

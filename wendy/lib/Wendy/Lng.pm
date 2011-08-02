@@ -34,6 +34,4 @@ sub BUILD
 
 }
 
-no Moose;
-
 42;

@@ -32,6 +32,6 @@ sub value
 	return $rv;
 }
 
-no Moose;
+
 
 42;
