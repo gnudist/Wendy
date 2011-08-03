@@ -1,14 +1,14 @@
 use strict;
 
+use Wendy::Db;
+use Wendy::Util::Db;
 package Wendy::Lng;
 
 use Moose;
 
-has 'id' => ( is => 'rw', isa => 'Int', required => 1 );
+has 'id' => ( is => 'rw', isa => 'Int' );
 has 'name' => ( is => 'rw', isa => 'Str' );
 has 'description' => ( is => 'rw', isa => 'Str' );
-
-use Wendy::Util::Db;
 
 sub BUILD
 {
@@ -18,8 +18,8 @@ sub BUILD
 
 	if( my $id = $self -> id() )
 	{
-		my $rec = Wendy::Util::Db -> query( Table => 'wendy_language',
-						    Where => sprintf( 'id=%d', $id ) );
+		my $rec = Wendy::Util::Db::query( Table => 'wendy_language',
+						  Where => sprintf( 'id=%d', $id ) );
 		if( $rec )
 		{
 			$self -> name( $rec -> { 'lng' } );
@@ -28,9 +28,22 @@ sub BUILD
 		{
 			die sprintf( 'language %d does not exist', $id );
 		}
-	}
+	} elsif( my $l = $self -> name() )
+	{
 
-	
+		my $rec = Wendy::Util::Db::query( Table => 'wendy_language',
+						  Where => sprintf( 'lng=%s',
+								      Wendy::Db -> quote( $l ) ) );
+		if( $rec )
+		{
+			$self -> id( $rec -> { 'id' } );
+			$self -> description( $rec -> { 'descr' } );
+		} else
+		{
+			die sprintf( 'language %l does not exist', $l );
+		}
+
+	}
 
 }
 

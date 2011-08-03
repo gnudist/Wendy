@@ -23,6 +23,48 @@ has 'cookie'  => ( is => 'rw', isa => 'Wendy::Cookie'  );
 has 'conf'    => ( is => 'rw', isa => 'Wendy::Config'  );
 has 'mod_perl_req' => ( is => 'rw', isa => 'Apache2::RequestRec' );
 
+sub mod_perl_return
+{
+	my $self = shift;
+
+	my $rv = shift;
+
+	my $req = $self -> req() -> mod_perl_req();
+
+	$req -> status( $rv -> code() );
+	$req -> status_line( join( ' ', ( $rv -> code(), $rv -> msg() ) ) );
+
+	if( my $t = $rv -> ctype() )
+	{
+		my $ch = $rv -> charset();
+		$req -> content_type( $t . ( $ch ? '; charset=' . $ch : '' ) );
+	}
+
+	if( my $t = $rv -> headers() )
+	{
+		foreach my $hdr ( @{ $t } )
+		{
+			$req -> headers_out() -> add( %{ $hdr } );
+		}
+	}
+
+	unless( $req -> headers_only() )
+	{
+		if( my $t = $rv -> file() )
+		{
+			$req -> sendfile( $t );
+		}
+
+		if( my $t = $rv -> data() )
+		{
+			$req -> print( $t );
+		}
+	}
+
+	return Apache2::Const::OK;
+
+}
+
 sub BUILD
 {
 	# actual constructor

@@ -7,6 +7,8 @@ use Moose;
 has 'code' => ( is => 'rw', isa => 'Int', default => 200 );
 has 'ctype' => ( is => 'rw', isa => 'Str', default => 'text/html' );
 has 'data' => ( is => 'rw', isa => 'Str' );
+has 'charset' => ( is => 'rw', isa => 'Str', default => 'UTF-8' );
+has 'msg' => ( is => 'rw', isa => 'Str', default => 'okay' );
 has 'file' => ( is => 'rw', isa => 'Str' );
 has 'headers' => ( is => 'rw', isa => 'ArrayRef[HashRef]' );
 

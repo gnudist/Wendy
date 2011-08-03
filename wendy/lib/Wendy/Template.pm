@@ -2,6 +2,7 @@ use strict;
 
 use File::Spec;
 use Wendy::Return;
+use Wendy::Util::Db;
 
 package Wendy::Template;
 
@@ -89,19 +90,62 @@ sub load_replaces
 {
 	my $self = shift;
 
-
 	my %args = @_;
 
+	my $lng = &extract_lng_id( $args{ 'Lng' } or $self -> lng() -> id() );
+	my $host = &extract_host_id( $args{ 'Host' } or $self -> host() -> id() );
+	my $addr = ( $args{ 'Address' } or $self -> path() -> path() );
 
-	unless( $self -> lng() )
+	my %replaces = &Wendy::Util::Db::query_many( Table => 'wendy_macros',
+						     Where => sprintf( "active=true AND lng=%d AND host=%d AND address=%s",
+								       $lng,
+								       $host,
+								       Wendy::Db -> quote( $addr ) ) );
+
+
+	if( %replaces )
 	{
-		die 'language not set';
+
+		my %current_replaces = $self -> replaces();
+
+		map { $current_replaces{ $_ -> { 'name' } } = $_ -> { 'body' } } values %replaces;
+		$self -> replaces( \%current_replaces );
 	}
 
-	# to be continued ...
-	# later
+}
 
+sub extract_lng_id
+{
+	my $v = shift;
 
+	if( $v =~ /^\d+$/ )
+	{
+		# this is numeric lng is
+		return $v;
+	}
+
+	# this is lng like "ru" or "en"
+
+	my $l = Wendy::Lng -> new( name => $v );
+	return $l -> id();
+
+}
+
+sub extract_host_id
+{
+	my $v = shift;
+
+	if( $v =~ /^\d+$/ )
+	{
+		# this is numeric host is
+		return $v;
+	}
+
+	# this is host name
+
+	my $h = Wendy::Host -> new( name => $v );
+
+	return $h -> id();
 }
 
 42;

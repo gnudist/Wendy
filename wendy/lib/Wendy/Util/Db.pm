@@ -8,10 +8,7 @@ use Data::Dumper;
 
 sub query_many
 {
-	my $self = shift;
-
 	my %args = @_;
-
 
 	my ( $table,
 	     $fields,
@@ -74,12 +71,9 @@ sub query_many
 
 sub query
 {
-
-	my $self = shift;
-
 	my %args = @_;
 
-	my $sql = &query_many( undef, %args, Debug => 1 );
+	my $sql = &query_many( %args, Debug => 1 );
 
 	if( $args{ 'Debug' } )
 	{
