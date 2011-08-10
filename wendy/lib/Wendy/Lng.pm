@@ -18,8 +18,8 @@ sub BUILD
 
 	if( my $id = $self -> id() )
 	{
-		my $rec = Wendy::Util::Db::query( Table => 'wendy_language',
-						  Where => sprintf( 'id=%d', $id ) );
+		my $rec = Wendy::Util::Db -> query( Table => 'wendy_language',
+						    Where => sprintf( 'id=%d', $id ) );
 		if( $rec )
 		{
 			$self -> name( $rec -> { 'lng' } );
@@ -31,8 +31,8 @@ sub BUILD
 	} elsif( my $l = $self -> name() )
 	{
 
-		my $rec = Wendy::Util::Db::query( Table => 'wendy_language',
-						  Where => sprintf( 'lng=%s',
+		my $rec = Wendy::Util::Db -> query( Table => 'wendy_language',
+						    Where => sprintf( 'lng=%s',
 								      Wendy::Db -> quote( $l ) ) );
 		if( $rec )
 		{

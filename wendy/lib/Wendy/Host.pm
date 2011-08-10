@@ -1,5 +1,6 @@
 use strict;
 
+use Wendy::Template;
 use Wendy::Util::Db;
 use Wendy::Config;
 use Wendy::Lng;
@@ -37,7 +38,8 @@ sub init
 	my $name = shift;
 
 	if( my $host_rec = Wendy::Util::Db -> query( Table => 'wendy_host',
-						     Where => sprintf( 'host=%s', Wendy::Db -> quote( $name ) ) ) )
+						     Where => sprintf( 'host=%s', 
+								       Wendy::Db -> quote( $name ) ) ) )
 	{
 
 		$self -> id( $host_rec -> { 'id' } );

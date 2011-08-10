@@ -9,6 +9,8 @@ use Wendy::Request;
 use Wendy::Cookie;
 use Wendy::Out;
 
+use Apache2::Const;
+
 package Wendy::Core;
 
 use Moose;
@@ -48,7 +50,7 @@ sub mod_perl_return
 		}
 	}
 
-	unless( $req -> headers_only() )
+	unless( $req -> header_only() )
 	{
 		if( my $t = $rv -> file() )
 		{
@@ -165,7 +167,7 @@ sub http_accept_languages
 		$t =~ s/\s//g;
 		foreach my $pair ( split( /,/, $t ) )
 		{
-			my ( $lng, $q ) = split( /;/, $pair );
+			my ( $lng, $q ) = split( /;q=/, $pair );
 			unless( $q )
 			{
 				$q = 1;

@@ -135,6 +135,9 @@ sub selectrow_hashref
 
 	my $sql = shift;
 
+	
+
+
 	return $self -> dbh() -> selectrow_hashref( $sql );
 }
 

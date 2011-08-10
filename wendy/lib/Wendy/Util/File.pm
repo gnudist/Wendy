@@ -8,7 +8,7 @@ use File::Temp ':mktemp';
 require Exporter;
 
 our @ISA         = qw( Exporter );
-our @EXPORT      = qw( save_data_in_file_atomic );
+our @EXPORT      = qw( save_data_in_file_atomic slurp );
 our @EXPORT_OK   = @EXPORT;
 our $VERSION     = 0.01;
 
@@ -36,6 +36,22 @@ sub save_data_in_file_atomic
 	unlink $tfn;
 
 	return $rc;
+}
+
+sub slurp
+{
+	my $fn = shift;
+
+	my $rv = undef;
+
+	if( open( my $fh, '<', $fn ) )
+	{
+		$rv = join( '', <$fh> );
+		close( $fh );
+	}
+
+	return $rv;
+
 }
 
 42;

@@ -4,6 +4,8 @@ use File::Spec;
 use Wendy::Return;
 use Wendy::Util::Db;
 
+use Template;
+
 package Wendy::Template;
 
 use Moose;
@@ -16,6 +18,8 @@ has 'tt' => ( is => 'rw', isa => 'Template' );
 has 'tt_options' => ( is => 'rw', isa => 'HashRef' );
 has 'lng' => ( is => 'rw', isa => 'Wendy::Lng' );
 
+use Wendy::Util::File 'slurp';
+
 sub BUILD
 {
 	my $self = shift;
@@ -25,7 +29,7 @@ sub BUILD
 		my $conf = Wendy::Config -> cached();
 
 		my $all_hosts_path = File::Spec -> catdir( $conf -> VARPATH(), 'hosts' );
-		my $path = File::Spec -> catdir( $allhostspath, $self -> host() -> name(), 'tpl' );
+		my $path = File::Spec -> catdir( $all_hosts_path, $self -> host() -> name(), 'tpl' );
 
 
 		my $config = { INCLUDE_PATH => [ $path,
@@ -54,36 +58,115 @@ sub execute
 
 	my $self = shift;
 
-	my $tplname = undef;
+	my $process_data = undef;
+
+        my $template = $self -> tt();
 
 	if( my $t = $self -> data() )
 	{
 		# we process raw data
-		$tplname = \$t;
+		$process_data = $t;
 
 	} elsif( my $p = $self -> path() )
 	{
 		# we process template in hosts directory
-		$tplname = $p -> path();
+		my $tplname = $p -> path();
 
-	} else
-	{
-		# we politely die
-		die 'do not know how to process this template';
+		my $tt_conf = $template -> context() -> config();
+
+P3LxSTU7ccNCD61i:
+		foreach my $path ( @{ $tt_conf -> { 'INCLUDE_PATH' } } )
+		{
+			if( -f ( my $t = File::Spec -> catfile( $path, $tplname ) ) )
+			{
+				$process_data = &slurp( $t );
+				last P3LxSTU7ccNCD61i;
+			}
+		}
 	}
 
-        my $template = $self -> tt();
+	unless( $process_data )
+	{
+		# we politely die
+		die '(no data found) do not know how to process this template';
+	}
 
         my $output = '';
 
-        unless( $template -> process( $tplname, $self -> replaces(), \$output ) )
+	$process_data = $self -> pre_process( $process_data );
+
+        unless( $template -> process( \$process_data, $self -> replaces(), \$output ) )
         {
                 $output = $template -> error();
         }
 
-	my $rv = Wendy::Return -> new( data => $output );
+	my $rv = Wendy::Return -> new( $self -> post_process( $output ) );
 
         return $rv;
+}
+
+sub pre_process
+{
+	my $self = shift;
+
+	my $data = shift;
+
+	my $functional_regexp = qr/^\!(LOAD|COMMENT):(.+)$/;
+	my $split_regexp = qr/[\x0d\x0a]+/;
+
+	foreach my $line ( split( $split_regexp, $data ) )
+	{
+
+		if( $line =~ $functional_regexp )
+		{
+			my ( $kw, $arg ) = ( $1, $2 );
+
+			if( $kw eq 'LOAD' )
+			{
+				# PROCESS LOAD KEYWORD
+				1;
+			}
+
+			$data =~ s/$split_regexp?\Q$line\E$split_regexp?//g;
+		}
+	}
+
+	return $data;
+
+}
+
+sub post_process
+{
+	my $self = shift;
+
+	my $data = shift;
+
+	my %rv = ();
+
+	my $functional_regexp = qr/^\!(CTYPE):(.+)$/;
+	my $split_regexp = qr/[\x0d\x0a]+/;
+
+	foreach my $line ( split( $split_regexp, $data ) )
+	{
+
+		if( $line =~ $functional_regexp )
+		{
+			my ( $kw, $arg ) = ( $1, $2 );
+
+			if( $kw eq 'CTYPE' )
+			{
+				$rv{ 'ctype' } = $arg;
+			}
+
+			$data =~ s/$split_regexp?\Q$line\E$split_regexp?//g;
+		}
+	}
+
+	$rv{ 'data' } = $data;
+
+
+	return %rv;
+
 }
 
 sub load_replaces
@@ -96,11 +179,11 @@ sub load_replaces
 	my $host = &extract_host_id( $args{ 'Host' } or $self -> host() -> id() );
 	my $addr = ( $args{ 'Address' } or $self -> path() -> path() );
 
-	my %replaces = &Wendy::Util::Db::query_many( Table => 'wendy_macros',
-						     Where => sprintf( "active=true AND lng=%d AND host=%d AND address=%s",
-								       $lng,
-								       $host,
-								       Wendy::Db -> quote( $addr ) ) );
+	my %replaces = Wendy::Util::Db -> query_many( Table => 'wendy_macros',
+						      Where => sprintf( "active=true AND lng=%d AND host=%d AND address=%s",
+									$lng,
+									$host,
+									Wendy::Db -> quote( $addr ) ) );
 
 
 	if( %replaces )
