@@ -1,11 +1,15 @@
 use strict;
 
+use Wendy::Handler;
 use Wendy::Template;
 use Wendy::Util::Db;
 use Wendy::Config;
 use Wendy::Lng;
+use Wendy::Cache;
 
 use File::Spec;
+use Wendy::Util::File ();
+use Storable ();
 
 package Wendy::Host;
 
@@ -129,6 +133,95 @@ sub has_path
 	}
 
 	return $rv;
+
+
+}
+
+sub has_map
+{
+	my $self = shift;
+
+	my $rv = 0;
+
+	return $rv;
+}
+
+sub store_cache_return
+{
+	my $self = shift;
+
+	my ( $cache_id, $ret_obj ) = @_;
+	my $conf = Wendy::Config -> cached();
+
+	my $cachestore = File::Spec -> canonpath( File::Spec -> catfile( $conf -> VARPATH(),
+									 'hosts',
+									 $self -> name(),
+									 'cache',
+									 $cache_id ) );
+
+	&Wendy::Util::File::save_data_in_file_atomic( Storable::freeze( $ret_obj ), $cachestore );
+
+
+}
+
+sub has_cached
+{
+	my $self = shift;
+
+	my $id = shift;
+
+	my $rv = undef;
+	my $conf = Wendy::Config -> cached();
+
+	my $cachestore = File::Spec -> canonpath( File::Spec -> catfile( $conf -> VARPATH(),
+									 'hosts',
+									 $self -> name(),
+									 'cache',
+									 $id ) );
+
+	if( -f $cachestore )
+	{
+
+		$rv = Wendy::Cache -> new( file => $cachestore );
+
+		if( my $ret = $rv -> still_valid() )
+		{
+			$rv = $ret;
+		} else
+		{
+			$rv = undef;
+		}
+
+	}
+
+	return $rv;
+
+}
+
+sub has_handler
+{
+	my $self = shift;
+
+	my $path = shift;
+
+	my $conf = Wendy::Config -> cached();
+
+	my $handlersrc = File::Spec -> canonpath( File::Spec -> catfile( $conf -> VARPATH(),
+									 'hosts',
+									 $self -> name(),
+									 'lib',
+									 $path -> path() .
+									 '.pl' ) );
+
+	my $rv = undef;
+
+	if( -f $handlersrc )
+	{
+		$rv = Wendy::Handler -> new( src => $handlersrc );
+	}
+	
+	return $rv;
+
 
 
 }

@@ -10,6 +10,7 @@ use Wendy::Cookie;
 use Wendy::Out;
 
 use Apache2::Const;
+use Digest::MD5 ();
 
 package Wendy::Core;
 
@@ -182,6 +183,34 @@ sub http_accept_languages
 
 }
 
+
+sub request_cache_id
+{
+	my $self = shift;
+
+	my @t = ( $self -> path() -> path(),
+		  $self -> lng() -> name(),
+		  $self -> req() -> cache_id() );
+
+	my $rv = join( ':', @t );
+
+	return Digest::MD5::md5_hex( $rv );
+
+
+}
+
+sub cache_return
+{
+	my $self = shift;
+
+	my $return_obj = shift;
+
+	my $host = $self -> host();
+
+	$host -> store_cache_return( $self -> request_cache_id(), $return_obj );
+
+}
+
 sub auto_output
 {
 	# TODO: discover and spawn output object
@@ -193,10 +222,22 @@ sub auto_output
 
 	my $output = Wendy::Out -> new();
 
+
 	if( $host -> has_path( $path ) )
 	{
+		if( my $o = $host -> has_cached( $self -> request_cache_id() ) )
+		{
 
-		if( my $t = $host -> has_template( $path ) )
+			$output -> cached( $o );
+
+
+		} elsif( my $h = $host -> has_handler( $path ) )
+		{
+			$h -> core( $self );
+			$output -> handler( $h );
+
+
+		} elsif( my $t = $host -> has_template( $path ) )
 		{
 			$t -> lng( $self -> lng() );
 			$output -> template( $t );

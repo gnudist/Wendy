@@ -11,6 +11,9 @@ has 'charset' => ( is => 'rw', isa => 'Str', default => 'UTF-8' );
 has 'msg' => ( is => 'rw', isa => 'Str', default => 'okay' );
 has 'file' => ( is => 'rw', isa => 'Str' );
 has 'headers' => ( is => 'rw', isa => 'ArrayRef[HashRef]' );
+has 'ttl' => ( is => 'rw', isa => 'Int', default => 600 );
+has 'expires' => ( is => 'rw', isa => 'Int' );
+has 'cache' => ( is => 'rw', isa => 'Bool', default => 0 );
 
 sub add_header
 {
@@ -56,6 +59,24 @@ sub remove_header
 
 
 
+}
+
+sub expired
+{
+	my $self = shift;
+
+	my $rv = 0;
+
+	if( my $t = $self -> expires() )
+	{
+		if( $t < time() )
+		{
+			$rv = 1;
+		}
+		
+	}
+
+	return $rv;
 }
 
 42;

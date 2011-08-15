@@ -5,6 +5,8 @@ package Wendy::Out;
 use Moose;
 
 has 'template' => ( is => 'rw', isa => 'Wendy::Template' );
+has 'handler' => ( is => 'rw', isa => 'Wendy::Handler' );
+has 'cached' => ( is => 'rw', isa => 'Wendy::Return' );
 
 sub execute
 {
@@ -14,18 +16,47 @@ sub execute
 	# or not
 
 
+	my $wendy_return = undef;
 
+	if( my $o = $self -> cached() )
+	{
+		return $o;
 
-	if( my $t = $self -> template() )
+	} elsif( my $h = $self -> handler() )
 	{
 
-		return $t -> execute();
+		$wendy_return = $h -> execute();
+
+
+	} elsif( my $t = $self -> template() )
+	{
+
+		$wendy_return =  $t -> execute();
 		
 	} else
 	{
 		die 'do not know anything else yet';
 	}
 
+	if( $wendy_return -> cache() )
+	{
+
+		unless( $wendy_return -> expires() )
+		{
+			if( my $t = $wendy_return -> ttl() )
+			{
+				$wendy_return -> expires( time() + $t );
+			}
+		}
+
+		unless( $wendy_return -> expires() )
+		{
+			$wendy_return -> cache( 0 );
+		}
+
+
+	}
+	return $wendy_return;
 
 }
 

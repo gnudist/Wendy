@@ -18,6 +18,11 @@ sub handler
 
 	my $rv = $wendyout -> execute();
 
+	if( $rv -> cache() and $wendy -> req() -> is_cacheable() )
+	{
+		$wendy -> cache_return( $rv );
+	}
+
 	return $wendy -> mod_perl_return( $rv );
 }
 
