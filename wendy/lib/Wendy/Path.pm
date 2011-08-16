@@ -12,6 +12,10 @@ coerce 'Str',
     from 'Wendy::Path',
     via { $_ -> path() };
 
+coerce 'Wendy::Path',
+    from 'Str',
+    via { Wendy::Path -> new( addr => $_ ) };
+
 use Data::Dumper;
 
 sub BUILD
@@ -31,11 +35,11 @@ sub BUILD
 
 sub form_path
 {
-	my $self = shift;
-	
 	my $p = shift;
 
 	return join( "_",  grep { $_ } split( /\W+/, $p ) );
 }
+
+__PACKAGE__ -> meta() -> make_immutable();
 
 42;

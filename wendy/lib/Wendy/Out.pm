@@ -60,4 +60,6 @@ sub execute
 
 }
 
+__PACKAGE__ -> meta() -> make_immutable();
+
 42;

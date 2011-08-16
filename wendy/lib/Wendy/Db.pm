@@ -142,6 +142,8 @@ sub selectrow_hashref
 }
 
 
+__PACKAGE__ -> meta() -> make_immutable();
+
 # wheres moose ?
 
 42;

@@ -11,7 +11,7 @@ package Wendy::Template;
 use Moose;
 
 has 'host' => ( is => 'rw', isa => 'Wendy::Host' );
-has 'path' => ( is => 'rw', isa => 'Wendy::Path' );
+has 'path' => ( is => 'rw', isa => 'Wendy::Path', coerce => 1 );
 has 'data' => ( is => 'rw', isa => 'Str' );
 has 'replaces' => ( is => 'rw', isa => 'HashRef', default => sub { {} } );
 has 'tt' => ( is => 'rw', isa => 'Template' );
@@ -169,6 +169,23 @@ sub post_process
 
 }
 
+sub add_replace
+{
+	my $self = shift;
+
+	my %args = @_;
+
+	my $replaces = $self -> replaces();
+
+	while( my ( $k, $v ) = each %args )
+	{
+		$replaces -> { $k } = $v;
+	}
+
+	$self -> replaces( $replaces );
+
+}
+
 sub load_replaces
 {
 	my $self = shift;
@@ -230,5 +247,7 @@ sub extract_host_id
 
 	return $h -> id();
 }
+
+__PACKAGE__ -> meta() -> make_immutable();
 
 42;

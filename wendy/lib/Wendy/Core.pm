@@ -75,6 +75,7 @@ sub BUILD
 	my $self = shift;
 
 	$self -> path( Wendy::Path -> new() );
+
 	$self -> conf( Wendy::Config -> new() );
 	$self -> dbh( Wendy::Db -> new() );
 
@@ -271,6 +272,6 @@ sub auto_output
 }
 
 
-
+__PACKAGE__ -> meta() -> make_immutable();
 
 42;

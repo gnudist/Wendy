@@ -33,5 +33,6 @@ sub value
 }
 
 
+__PACKAGE__ -> meta() -> make_immutable();
 
 42;

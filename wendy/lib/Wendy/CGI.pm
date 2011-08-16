@@ -41,4 +41,6 @@ sub vars
 	return $self -> cgi() -> Vars();
 }
 
+__PACKAGE__ -> meta() -> make_immutable();
+
 42;

@@ -79,4 +79,6 @@ sub expired
 	return $rv;
 }
 
+__PACKAGE__ -> meta() -> make_immutable();
+
 42;

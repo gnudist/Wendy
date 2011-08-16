@@ -253,6 +253,6 @@ sub has_template
 
 }
 
-
+__PACKAGE__ -> meta() -> make_immutable();
 
 42;

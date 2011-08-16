@@ -57,4 +57,6 @@ sub save
 
 }
 
+__PACKAGE__ -> meta() -> make_immutable();
+
 42;

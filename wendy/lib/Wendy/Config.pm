@@ -54,5 +54,6 @@ sub random_db_host
 	return $hosts[ rand @hosts ];
 }
 
+__PACKAGE__ -> meta() -> make_immutable();
 
 42;
