@@ -9,7 +9,6 @@ use Wendy::Cache;
 
 use File::Spec;
 use Wendy::Util::File ();
-use Storable ();
 
 package Wendy::Host;
 
@@ -159,7 +158,10 @@ sub store_cache_return
 									 'cache',
 									 $cache_id ) );
 
-	&Wendy::Util::File::save_data_in_file_atomic( Storable::freeze( $ret_obj ), $cachestore );
+	my $cache = Wendy::Cache -> new( file => $cachestore,
+					 object => $ret_obj );
+	$cache -> save();
+
 
 
 }
