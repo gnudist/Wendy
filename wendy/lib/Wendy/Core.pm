@@ -26,6 +26,8 @@ has 'cookie'  => ( is => 'rw', isa => 'Wendy::Cookie'  );
 has 'conf'    => ( is => 'rw', isa => 'Wendy::Config'  );
 has 'mod_perl_req' => ( is => 'rw', isa => 'Apache2::RequestRec' );
 
+my $cached = undef;
+
 sub mod_perl_return
 {
 	my $self = shift;
@@ -96,10 +98,14 @@ sub BUILD
 	$self -> cookie( Wendy::Cookie -> new() );
 	$self -> language_init();
 
-		
+	$cached = $self;
 
 }
 
+sub cached
+{
+	return $cached;
+}
 
 sub language_init
 {
