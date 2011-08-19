@@ -10,7 +10,7 @@ has 'data' => ( is => 'rw', isa => 'Str' );
 has 'charset' => ( is => 'rw', isa => 'Str', default => 'UTF-8' );
 has 'msg' => ( is => 'rw', isa => 'Str', default => 'okay' );
 has 'file' => ( is => 'rw', isa => 'Str' );
-has 'headers' => ( is => 'rw', isa => 'ArrayRef[HashRef]' );
+has 'headers' => ( is => 'rw', isa => 'ArrayRef[HashRef]', default => sub { [] } );
 has 'ttl' => ( is => 'rw', isa => 'Int', default => 600 );
 has 'expires' => ( is => 'rw', isa => 'Int' );
 has 'cache' => ( is => 'rw', isa => 'Bool', default => 0 );

@@ -16,15 +16,18 @@ package Wendy::Core;
 
 use Moose;
 
-has 'path'    => ( is => 'rw', isa => 'Wendy::Path'    );
-has 'host'    => ( is => 'rw', isa => 'Wendy::Host'    );
-has 'dbh'     => ( is => 'rw', isa => 'Wendy::Db'      );
-has 'cgi'     => ( is => 'rw', isa => 'Wendy::CGI'     );
-has 'req'     => ( is => 'rw', isa => 'Wendy::Request' );
-has 'lng'     => ( is => 'rw', isa => 'Wendy::Lng'     );
-has 'cookie'  => ( is => 'rw', isa => 'Wendy::Cookie'  );
-has 'conf'    => ( is => 'rw', isa => 'Wendy::Config'  );
+has 'path'     => ( is => 'rw', isa => 'Wendy::Path'    );
+has 'realpath' => ( is => 'rw', isa => 'Wendy::Path'    );
+has 'host'     => ( is => 'rw', isa => 'Wendy::Host'    );
+has 'dbh'      => ( is => 'rw', isa => 'Wendy::Db'      );
+has 'cgi'      => ( is => 'rw', isa => 'Wendy::CGI'     );
+has 'req'      => ( is => 'rw', isa => 'Wendy::Request' );
+has 'lng'      => ( is => 'rw', isa => 'Wendy::Lng'     );
+has 'cookie'   => ( is => 'rw', isa => 'Wendy::Cookie'  );
+has 'conf'     => ( is => 'rw', isa => 'Wendy::Config'  );
 has 'mod_perl_req' => ( is => 'rw', isa => 'Apache2::RequestRec' );
+
+use Wendy::Shorts::Return;
 
 my $cached = undef;
 
@@ -77,6 +80,7 @@ sub BUILD
 	my $self = shift;
 
 	$self -> path( Wendy::Path -> new() );
+	$self -> realpath( $self -> path() );
 
 	$self -> conf( Wendy::Config -> new() );
 	$self -> dbh( Wendy::Db -> new() );
@@ -195,7 +199,7 @@ sub request_cache_id
 {
 	my $self = shift;
 
-	my @t = ( $self -> path() -> path(),
+	my @t = ( $self -> realpath() -> path(),
 		  $self -> lng() -> name(),
 		  $self -> req() -> cache_id() );
 
@@ -235,7 +239,7 @@ sub auto_output
 		if( my $o = $host -> has_cached( $self -> request_cache_id() ) )
 		{
 
-			$output -> cached( $o );
+			$output -> outcome( $o );
 
 
 		} elsif( my $h = $host -> has_handler( $path ) )
@@ -260,17 +264,23 @@ sub auto_output
 
 
 
-	} elsif( $host -> has_map( $path ) )
+	} elsif( my $m = $host -> has_map( $path ) )
 	{
+		# $m is Wendy::Path we should go to
 
-		2;
+		$self -> path( $m );
+
+		# watch your stack!
+
+		return $self -> auto_output();
 
 	} else
 	{
 		# 404 err
-		# TODO
-		die 'nuff said';
-		
+
+		$output -> outcome( &http_404() );
+
+	
 	}
 
 	return $output;

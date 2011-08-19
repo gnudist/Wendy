@@ -6,7 +6,7 @@ use Moose;
 
 has 'template' => ( is => 'rw', isa => 'Wendy::Template' );
 has 'handler' => ( is => 'rw', isa => 'Wendy::Handler' );
-has 'cached' => ( is => 'rw', isa => 'Wendy::Return' );
+has 'outcome' => ( is => 'rw', isa => 'Wendy::Return' );
 
 sub execute
 {
@@ -18,7 +18,7 @@ sub execute
 
 	my $wendy_return = undef;
 
-	if( my $o = $self -> cached() )
+	if( my $o = $self -> outcome() )
 	{
 		return $o;
 

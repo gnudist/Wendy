@@ -1,5 +1,6 @@
 use strict;
 
+use Wendy::Map;
 use Wendy::Handler;
 use Wendy::Template;
 use Wendy::Util::Db;
@@ -140,7 +141,23 @@ sub has_map
 {
 	my $self = shift;
 
+	my $path = shift;
+
 	my $rv = 0;
+
+	my $conf = Wendy::Config -> cached();
+	my $mapstore = File::Spec -> catfile( $conf -> VARPATH(),
+					      'hosts',
+					      $self -> name(),
+					      'map.conf' );
+
+
+	my $map = Wendy::Map -> new( file => $mapstore );
+
+	if( my $t = $map -> match( $path ) )
+	{
+		$rv = $t;
+	}
 
 	return $rv;
 }
