@@ -247,8 +247,8 @@ sub patch_files
 			   wendy/misc/wendy-httpd.conf
                            wendy/misc/wendy-fcgi-nginx.conf
 			   wendy/misc/wendyinit.sql
-			   wendy/misc/startup.pl );
-### TODO !                           wendy/var/hosts/%DEFAULT_HOST%/lib/admin.pl );
+			   wendy/misc/startup.pl
+	                   wendy/var/hosts/%DEFAULT_HOST%/lib/admin.pl );
 
 	foreach my $file ( @varfiles )
 	{
