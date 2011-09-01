@@ -3,6 +3,7 @@ use strict;
 use File::Spec;
 use Wendy::Return;
 use Wendy::Util::Db;
+use Wendy::Core;
 
 use Template;
 
@@ -23,6 +24,29 @@ use Wendy::Util::File 'slurp';
 sub BUILD
 {
 	my $self = shift;
+
+	foreach my $f ( 'host', 'lng', 'path' )
+	{
+		unless( $self -> $f() )
+		{
+			$self -> $f( Wendy::Core -> cached() -> $f() );
+		}
+	}
+
+	# unless( $self -> host() )
+	# {
+	# 	$self -> host( Wendy::Core -> cached() -> host() );
+	# }
+
+	# unless( $self -> lng() )
+	# {
+	# 	$self -> lng( Wendy::Core -> cached() -> lng() );
+	# }
+
+	# unless( $self -> path() )
+	# {
+	# 	$self -> path( Wendy::Core -> cached() -> path() );
+	# }
 
 	unless( $self -> tt() )
 	{
@@ -123,8 +147,13 @@ sub pre_process
 
 			if( $kw eq 'LOAD' )
 			{
-				# PROCESS LOAD KEYWORD
-				1;
+				# example: 
+                                # !LOAD:another_page:www.another.com:en
+				$arg =~ s/\s//g;
+				my ( $address, $host, $lng ) = split( /:/, $arg, 3 );
+				$self -> load_replaces( Address => $arg,
+							Host => $host,
+							Lng => $lng );
 			}
 
 			$data =~ s/$split_regexp?\Q$line\E$split_regexp?//g;
@@ -195,6 +224,11 @@ sub load_replaces
 	my $lng = &extract_lng_id( $args{ 'Lng' } or $self -> lng() -> id() );
 	my $host = &extract_host_id( $args{ 'Host' } or $self -> host() -> id() );
 	my $addr = ( $args{ 'Address' } or $self -> path() -> path() );
+
+	if( $addr eq '_this' )
+	{
+		$addr = $self -> path() -> path();
+	}
 
 	my %replaces = Wendy::Util::Db -> query_many( Table => 'wendy_macros',
 						      Where => sprintf( "active=true AND lng=%d AND host=%d AND address=%s",

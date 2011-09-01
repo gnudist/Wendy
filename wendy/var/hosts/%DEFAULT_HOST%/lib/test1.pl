@@ -11,7 +11,7 @@ sub wendy_handler
 
 	my $core = $self -> core();
 
-	my $tpl = Wendy::Template -> new( host => $core -> host(),
+	my $tpl = Wendy::Template -> new( # host => $core -> host(),
 					  path => 'test_template' );
 
 	$tpl -> add_replace( 'TEST_REPLACE' => 'This is test replace.' );
