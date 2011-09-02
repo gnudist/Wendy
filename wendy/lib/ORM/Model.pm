@@ -123,7 +123,7 @@ ETxc0WxZs0boLUm1:
 			   $self -> _db_table(),
 			   join( ',', @upadte_pairs ),
 			   &__get_db_field_name( $pkattr ),
-			   &ORM::Db::dbq( $self -> $pkname() ) );
+			   &ORM::Db::dbq( &__prep_value_for_db( $pkattr, $self -> $pkname() ) ) );
 
 
 	if( $debug )
@@ -138,7 +138,16 @@ ETxc0WxZs0boLUm1:
 			assert( 0, sprintf( "%s: %s", $sql, &ORM::Db::errstr() ) );
 		}
 	}
-			   
+}
+
+sub delete
+{
+	my $self = shift;
+	my $sql = $self -> __form_delete_sql( @_ );
+
+	my $rc = &ORM::Db::doit( $sql );
+
+	return $rc;
 }
 
 sub meta_change_attr
@@ -187,12 +196,19 @@ FXOINoqUOvIG1kAG:
 
 		}
 
-		$self -> meta() -> add_attribute( $aname, ( is => 'rw',
-							    isa => $attr -> { 'isa' },
-							    lazy => 1,
-							    metaclass => 'ORM::Meta::Attribute',
-							    description => ( &__descr_or_undef( $attr ) or {} ),
-							    default => sub { $_[ 0 ] -> __lazy_build_value( $attr ) } ) );
+		if( &__descr_attr( $attr, 'ignore' ) )
+		{
+			$self -> meta() -> add_attribute( $attr -> clone() );
+
+		} else
+		{
+			$self -> meta() -> add_attribute( $aname, ( is => 'rw',
+								    isa => $attr -> { 'isa' },
+								    lazy => 1,
+								    metaclass => 'ORM::Meta::Attribute',
+								    description => ( &__descr_or_undef( $attr ) or {} ),
+								    default => sub { $_[ 0 ] -> __lazy_build_value( $attr ) } ) );
+		}
 	}
 }
 
@@ -312,6 +328,28 @@ sub __prep_value_for_db
 
 }
 
+sub __form_delete_sql
+{
+	my $self = shift;
+
+	my %args = @_;
+
+	if( ref( $self ) )
+	{
+		foreach my $attr ( $self -> meta() -> get_all_attributes() )
+		{
+			my $aname = $attr -> name();
+			$args{ $aname } = $self -> $aname();
+		}
+	}
+
+	my @where_args = $self -> __form_where( %args );
+
+	my $sql = sprintf( "DELETE FROM %s WHERE %s", $self -> _db_table(), join( ' AND ', @where_args ) );
+
+	return $sql;
+}
+
 sub __form_get_sql
 {
 	my $self = shift;
@@ -395,28 +433,48 @@ sub __form_where
 fhFwaEknUtY5xwNr:
 	foreach my $attr ( keys %args )
 	{
+		my $val = $args{ $attr };
+
+		if( $attr eq '_where' )
+		{
+			push @where_args, $val;
+
+		}
+
 		if( $attr =~ /^_/ ) # skip system agrs, they start with underscore
 		{
 			next fhFwaEknUtY5xwNr;
 		}
 
 		my $class_attr = $self -> meta() -> find_attribute_by_name( $attr );
+
+		if( &__descr_attr( $class_attr, 'ignore' ) )
+		{
+			next fhFwaEknUtY5xwNr;
+		}
+
 		my $class_attr_isa = $class_attr -> { 'isa' };
 
 		my $col = &__get_db_field_name( $class_attr );
 
-		my $val = $args{ $attr };
+
 		my $op = '=';
 
 		if( ref( $val ) eq 'HASH' )
 		{
-			( $op, $val ) = each %{ $val };
-			$val = &ORM::Db::dbq( &__prep_value_for_db( $class_attr, $val ) );
+			if( $class_attr_isa =~ 'HashRef' )
+			{
+				next fhFwaEknUtY5xwNr;
+			} else
+			{
+				( $op, $val ) = each %{ $val };
+				$val = &ORM::Db::dbq( &__prep_value_for_db( $class_attr, $val ) );
+			}
 
 		} elsif( ref( $val ) eq 'ARRAY' )
 		{
 
-			if( $class_attr_isa eq 'ArrayRef' )
+			if( $class_attr_isa =~ 'ArrayRef' )
 			{
 				$val = &ORM::Db::dbq( &__prep_value_for_db( $class_attr, $val ) );
 			} else
