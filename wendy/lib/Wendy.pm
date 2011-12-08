@@ -250,7 +250,7 @@ HANDLERSLOOP:
 
 		} else
 		{
-			$PROCRV = 'Neither template nor handler are defined for this address.';
+			$PROCRV -> { 'data' } = 'Neither template nor handler are defined for this address.';
 		}
 
 		unless( $PROCRV -> { 'nocache' } or $PROCRV -> { 'ttl' } or $PROCRV -> { 'expires' } )
