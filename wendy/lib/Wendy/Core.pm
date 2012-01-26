@@ -180,18 +180,23 @@ sub http_accept_languages
 		foreach my $pair ( split( /,/, $t ) )
 		{
 			my ( $lng, $q ) = split( /;q=/, $pair );
+			
 			unless( $q )
 			{
 				$q = 1;
 			}
+
+			my ( $lng_code, $country_code ) = split( /-/, $lng, 2 );
+			$lng = $lng_code;
+
 			$h{ $lng } = $q;
 		}
 
 		@rv = sort { $h{ $b } <=> $h{ $a } } keys %h;
 
 	}
-	return @rv;
 
+	return @rv;
 }
 
 

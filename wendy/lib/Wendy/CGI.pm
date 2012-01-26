@@ -22,7 +22,7 @@ sub param
 
 	my $n = shift;
 
-	return scalar $self -> cgi() -> param( $n );
+	return $self -> cgi() -> param( $n );
 }
 
 sub upload

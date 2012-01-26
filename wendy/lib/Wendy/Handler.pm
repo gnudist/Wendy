@@ -1,3 +1,5 @@
+use strict;
+
 package Wendy::Handler;
 
 use Moose;
@@ -15,11 +17,13 @@ sub execute
 
 	require $src;
 
-	my $pkg = $self -> core() -> host() -> name() . '::' . $self -> core() -> path() -> path();
+	my $pkg = &Wendy::Path::form_path( $self -> core() -> host() -> name() ) .
+	          '::' .
+		  $self -> core() -> path() -> path();
 
 	my $handler_object = $pkg -> new( core => $self -> core() );
 
-	return $handler_object -> wendy_handler();
+	return $handler_object -> run();
 
 }
 
