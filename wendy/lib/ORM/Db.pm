@@ -4,10 +4,38 @@ my $cached_dbh = undef;
 
 use Carp::Assert;
 
+sub __set_default_if_not_set
+{
+	my ( $self, $dbh ) = @_;
+
+	unless( my $t = $self -> get_dbh() )
+	{
+		# small racecond :)
+		$self -> init( $dbh );
+	}
+}
+
+sub dbh_is_ok
+{
+	my $dbh = shift;
+
+	my $rv = $dbh;
+
+	if( $dbh )
+	{
+
+		unless( $dbh -> ping() )
+		{
+			$rv = undef;
+		}
+	}
+
+	return $rv;
+}
+
 sub init
 {
-	my $self = shift;
-	my $dbh = shift;
+	my ( $self, $dbh ) = @_;
 
 	unless( $dbh )
 	{
@@ -26,49 +54,93 @@ sub get_dbh
 
 sub dbq
 {
-	my $v = shift;
+	my ( $v, $dbh ) = @_;
 
-	return $cached_dbh -> quote( $v );
+
+	unless( $dbh )
+	{
+		$dbh = $cached_dbh;
+	}
+
+	assert( $dbh );
+
+	return $dbh -> quote( $v );
 
 }
 
 sub getrow
 {
-	my $sql = shift;
+	my ( $sql, $dbh ) = @_;
 
-	return $cached_dbh -> selectrow_hashref( $sql );
+	unless( $dbh )
+	{
+		$dbh = $cached_dbh;
+	}
+
+	assert( $dbh );
+
+	return $dbh -> selectrow_hashref( $sql );
 
 }
 
 sub prep
 {
-	my $sql = shift;
+	my ( $sql, $dbh ) = @_;
 
-	return $cached_dbh -> prepare( $sql );
+	unless( $dbh )
+	{
+		$dbh = $cached_dbh;
+	}
+
+	assert( $dbh );
+
+	return $dbh -> prepare( $sql );
 	
 }
 
 sub doit
 {
-	my $sql = shift;
-	return $cached_dbh -> do( $sql );
+	my ( $sql, $dbh ) = @_;
+
+	unless( $dbh )
+	{
+		$dbh = $cached_dbh;
+	}
+
+	assert( $dbh );
+
+	return $dbh -> do( $sql );
 }
 
 sub errstr
 {
-	return $cached_dbh -> errstr();
+	my $dbh = shift;
+
+	unless( $dbh )
+	{
+		$dbh = $cached_dbh;
+	}
+	
+	assert( $dbh );
+
+	return $dbh -> errstr();
 }
 
 sub nextval
 {
-	my $sn = shift;
+	my ( $sn, $dbh ) = @_;
 
-	my $sql = sprintf( "SELECT nextval(%s) AS newval", &dbq( $sn ) );
+	unless( $dbh )
+	{
+		$dbh = $cached_dbh;
+	}
 
-	assert( my $rec = &getrow( $sql ),
+	my $sql = sprintf( "SELECT nextval(%s) AS newval", &dbq( $sn, $dbh ) );
+
+	assert( my $rec = &getrow( $sql, $dbh ),
 		sprintf( 'could not get new value from sequence %s: %s',
 			 $sn,
-			 &errstr() ) );
+			 &errstr( $dbh ) ) );
 
 	return $rec -> { 'newval' };
 }
