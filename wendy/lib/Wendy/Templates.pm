@@ -275,6 +275,12 @@ VNR8cv0oP5bIFmDL:
 				{
 					push @templates_used, $argument;
 					$WOBJ -> { "__tpllist" } = \@templates_used;
+
+					unless( $WOBJ -> { "TRUE_HPATH" } )
+					{
+						$WOBJ -> { "TRUE_HPATH" } = $WOBJ -> { "HPATH" };
+					}
+
 					$WOBJ -> { "HPATH" } = $argument;
 					
 					my $proct = {};
@@ -370,7 +376,7 @@ VNR8cv0oP5bIFmDL:
 
 					if( $argument eq '_this' )
 					{
-						$argument = $WOBJ -> { "HPATH" };
+						$argument = ( $WOBJ -> { "TRUE_HPATH" } or $WOBJ -> { "HPATH" } );
 					}
 
 					&load_macros( HostId => $WOBJ -> { "HOST" } -> { "id" },
