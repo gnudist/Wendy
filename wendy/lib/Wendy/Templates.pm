@@ -27,12 +27,14 @@ our @EXPORT      = qw( template_process
 		       add_replace
 		       get_replace
 		       kill_replace
-		       quoter );
+		       quoter
+		       load_custom_macros );
 our @EXPORT_OK   = @EXPORT;
 our %EXPORT_TAGS = ( default => [ qw( ) ] );
 our $VERSION     = 1.00;
 
 our %REPLACES = ();
+my %QUERY_CACHE = ();
 
 my $__replace_regexp = qr/\[([A-Z_0-9\-]+)\]/;
 my $__functional_regexp = qr/^(PROC|TEMPLATE|TEMPLATEC|INCLUDE|TEMPLATEFF|URL|URLFF|LOAD|CTYPE|TTL|CODE|HEADER|LANGUAGE):([\w\/\-:\.\;\=,\s\+\?\&]+)/;
@@ -588,6 +590,50 @@ sub get_replace
 sub kill_replace
 {
 	return &unset_macros( @_ );
+}
+
+# name => 'macros_name', lng => '[a-z]{2}', addr => 'macros_address', host => '[0-9]+'
+sub load_custom_macros
+{
+        my %args = @_;
+        my ( $query, $wobj ) = ( '', \%Wendy::WOBJ );
+
+	( $args{ 'host' },
+	  $args{ 'lng' } ) = ( ( $args{ 'host' } || $wobj -> { 'HOST' } -> { 'id' } ),
+			       ( $args{ 'lng' }  || $wobj -> { 'LNG' } ) );
+
+	{
+		my $uri = URI -> new();
+
+		use bytes;
+		$uri -> query_form( %args );
+
+		$query = $uri -> as_string();
+	}
+
+	unless( $query )
+	{
+		return '';
+	}
+
+        if( defined $QUERY_CACHE{ $query } )
+        {
+                return $QUERY_CACHE{ $query };
+        }
+
+        my %macroses = &meta_get_records( Table => 'macros m, language l',
+                                          Fields => [ 'm.body as body', 'm.name as id' ],
+                                          Where => sprintf( 'm.host=%d and m.name=%s and m.lng=l.id and l.lng=%s and m.address=%s',
+                                                            $args{ 'host' },
+                                                            &dbquote( $args{ 'name' } ),
+                                                            &dbquote( $args{ 'lng' } ),
+                                                            &dbquote( $args{ 'addr' } ) ) );
+	if( scalar keys %macroses )
+	{
+		$QUERY_CACHE{ $query } = $macroses{ $args{ 'name' } } -> { 'body' };
+	}
+	
+        return ( $QUERY_CACHE{ $query } || '' );
 }
 
 1;
