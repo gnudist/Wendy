@@ -3,35 +3,35 @@
 use strict;
 use lib "wendy/lib";
 
-use Term::ReadLine;
-use File::Touch;
-use File::Spec;
-use File::Temp;
-use Wendy::Util 'perl_module_available';
-use Wendy::Util::File 'save_data_in_file_atomic';
-use Wendy::Hosts 'form_address';
-use Cwd;
+sub modules_to_require
+{
 
-my @reqlist = qw(
-Apache::DBI
+	my @reqlist = qw(
+
 Apache2::Access
 Apache2::Connection
+Apache2::Const
 Apache2::RequestIO
 Apache2::RequestRec
 Apache2::RequestUtil
+Apache::DBI
 Cache::Memcached
+Carp::Assert
 CGI
 CGI::Cookie
 Crypt::SSLeay
+Cwd
 Data::Dumper
 Data::Validate::URI
+DateTime
 DBD::Pg
 DBI
 Digest::MD5
 Fcntl
 File::Basename
-File::Spec
+File::Copy
 File::Path
+File::Spec
 File::Temp
 File::Touch
 File::Util
@@ -39,38 +39,75 @@ HTTP::Headers
 HTTP::Request::Common
 LWP::UserAgent
 MIME::Base64
+MIME::Lite
 MIME::Types
+Moose
+Storable
+String::ShellQuote
+Sys::Statistics::Linux::LoadAVG
+Template
+Term::ReadLine
+TryCatch
 URI
 XML::Quote
-MIME::Lite
-DateTime
-String::ShellQuote
+
+
 		 );
 
-my @notfounds = ();
 
-foreach my $name ( @reqlist )
+	return @reqlist;
+
+}
+
+sub check_modules_requirements
 {
-	print "Checking requirement " . $name . "...";
 
-	my $res = "ok";
-
-	unless( &perl_module_available( $name ) )
+	my @notfounds = ();
+	
+	foreach my $name ( &modules_to_require() )
 	{
-		$res = "fail";
-		push @notfounds, $name;
+		print "Checking requirement " . $name . "...";
+		
+		my $res = "ok";
+		
+		unless( &perl_module_available( $name ) )
+		{
+			$res = "fail";
+			push @notfounds, $name;
+		}
+		print $res, "\n";
 	}
-	print $res, "\n";
+	
+	
+	if( @notfounds )
+	{
+		print "Following modules are required by Wendy, but not found on this system:\n\n",
+		join( "\n", @notfounds ),
+		"\n\nCan not continue.";
+		exit( 0 );
+	}
+
+
 }
 
 
-if( scalar @notfounds )
-{
-	print "Following modules are required by Wendy, but not found on this system:\n\n",
-	      join( "\n", @notfounds ),
-	      "\n\nCan not continue.";
-	exit( 0 );
+use Wendy::Util 'perl_module_available';
+
+
+BEGIN {
+
+	&check_modules_requirements();
+
 }
+
+use Term::ReadLine;
+use File::Touch;
+use File::Spec;
+use File::Temp;
+use Wendy::Util::File 'save_data_in_file_atomic';
+use Wendy::Hosts 'form_address';
+use Cwd;
+
 
 print <<EOF;
 
