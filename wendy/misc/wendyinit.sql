@@ -1,3 +1,5 @@
+begin ;
+
 DROP TABLE host_alias;
 DROP TABLE wemodule;
 DROP TABLE weuser;
@@ -6,6 +8,10 @@ DROP TABLE macros;
 DROP TABLE host;
 DROP TABLE language;
 DROP TABLE perlproc;
+
+commit;
+
+begin;
 
 CREATE table language (
 id SERIAL PRIMARY KEY,
@@ -70,7 +76,7 @@ name varchar (64) NOT NULL,
 host INT REFERENCES host(id) );
 ALTER TABLE wemodule ADD CONSTRAINT mod_uni UNIQUE(name,host);
 
-INSERT INTO language (lng,descr) VALUES ('en', 'English (US)');
+INSERT INTO language (lng,descr) VALUES ('en', 'English');
 INSERT INTO language (lng,descr) VALUES ('ru', 'Russian');
 INSERT INTO language (lng,descr) VALUES ('fr', 'French');
 INSERT INTO language (lng,descr) VALUES ('de', 'German');
@@ -89,3 +95,5 @@ INSERT INTO macros (name,body,host,address,lng) VALUES ('ANY_TEST_MACROS','This 
 INSERT INTO perlproc (name,body) VALUES('rand_num', 'return rand();');
 
 INSERT INTO weuser (login,password,host) values ('root','%ROOT_PASSWORD%','1');
+
+COMMIT;
