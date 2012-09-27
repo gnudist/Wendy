@@ -91,7 +91,7 @@ sub check_modules_requirements
 }
 
 
-use Wendy::Util 'perl_module_available';
+use Wendy::Util::Perl;
 
 
 BEGIN {

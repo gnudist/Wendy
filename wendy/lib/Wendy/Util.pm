@@ -32,7 +32,6 @@ our @EXPORT_OK   = qw( build_directory_tree
 		       meta_get_record
 		       in
 		       download_url
-		       perl_module_available
 		       rand_array
 		       abs2rel_compat
 		       send_mail );
@@ -57,25 +56,6 @@ sub in # checks if element in array or not :)
 		return 1 if $_ eq $el;
 	}
 	return 0;
-}
-
-sub perl_module_available
-{
-	my $name = shift;
-	
-	my $file = $name . ".pm";
-	my $delim = '/';
-	$file =~ s{::}{$delim}g;
-	eval { require $file };
-
-	my $rv = 0;
-
-	unless( $@ )
-	{
-		$rv = 1;
-		
-	}
-	return $rv;
 }
 
 sub build_directory_tree
