@@ -414,6 +414,7 @@ WORKFINISHED:
 	return Apache2::Const::OK;
 }
 
+
 sub parse_http_accept_language
 {
 	my $alstr = shift;
@@ -421,10 +422,21 @@ sub parse_http_accept_language
 	my @lq = split ",", $alstr;
 	my %outcome = ();
 
+	my $curq = 1;
+
 	foreach ( @lq )
 	{
-		my ( $lng, $q ) = split( ";q=", $_ );
-		$outcome{ $lng } = ( $q or 1 );
+		my ( $lng, $q ) = split ";q=", $_;
+		unless( $q )
+		{
+			$q = $curq;
+			$curq -= 0.1;
+		}
+
+		my ( $lng_code, $country_code ) = split( /-/, $lng, 2 );
+		$lng = $lng_code;
+
+		$outcome{ $lng } = $q;
 	}
 	return %outcome;
 }
