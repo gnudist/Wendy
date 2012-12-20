@@ -321,6 +321,8 @@ VNR8cv0oP5bIFmDL:
 								  Data => $proct -> { 'data' },
 								  TTL => $proct -> { 'ttl' } );
 					}
+
+					$WOBJ -> { "HPATH" } = $WOBJ -> { "TRUE_HPATH" };
 				}
 
 				if( $bbkhost )
