@@ -16,6 +16,7 @@ use Wendy::DataCache;
 use File::Spec;
 use XML::Quote;
 use URI;
+use Carp::Assert 'assert';
 
 our @ISA         = qw( Exporter );
 our @EXPORT      = qw( template_process
@@ -270,8 +271,14 @@ VNR8cv0oP5bIFmDL:
 				if( defined $WOBJ -> { "__tpllist" } )
 				{
 					@templates_used = @{ $WOBJ -> { "__tpllist" } };
+					
+					if( scalar @templates_used > 100 )
+					{
+						assert( 0, 'is it really necessary to process so many templates?' );
+					}
+
 				}
-				unless( &in( $argument, @templates_used ) )
+				
 				{
 					push @templates_used, $argument;
 					$WOBJ -> { "__tpllist" } = \@templates_used;
@@ -330,6 +337,8 @@ VNR8cv0oP5bIFmDL:
 					$WOBJ -> { 'HOST' } -> { 'host' } = $bbkhost;
 					$WOBJ -> { 'TPLSTORE' } = $bbkstore;
 				}
+
+				delete $WOBJ -> { '__tpllist' };
 
 			} elsif( $keyword eq 'INCLUDE' )
 			{
