@@ -295,6 +295,7 @@ sub download_url
 	{
 		my ( $tfh, $tfn ) = tmpnam();
 		print $tfh $response -> content();
+		close( $tfh );
 		
 		unless( $rq_size )
 		{
