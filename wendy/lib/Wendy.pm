@@ -542,7 +542,7 @@ sub request_cache_hit
 			my @cheaders = &read_customcache_file( $ccfile );
 			$rv -> { "headers" } = \@cheaders;
 		}
-		$rv -> { 'file' } = $cachepath;
+		$rv -> { 'file' } ||= $cachepath;
 	}
 
 	
